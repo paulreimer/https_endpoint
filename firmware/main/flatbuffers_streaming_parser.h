@@ -36,13 +36,13 @@ extern const char firebase_db_bfbs_end[]
 constexpr char wildcard_sym[] = "*";
 
 template<typename MessageT, typename ErrorT>
-class FlatbuffersPrinter
+class FlatbuffersStreamingParser
 {
 private:
-  FlatbuffersPrinter(const FlatbuffersPrinter &);
-  FlatbuffersPrinter &operator=(const FlatbuffersPrinter &);
+  FlatbuffersStreamingParser(const FlatbuffersStreamingParser &);
+  FlatbuffersStreamingParser &operator=(const FlatbuffersStreamingParser &);
 
-  const char TAG[19] = "FlatbuffersPrinter";
+  const char TAG[27] = "FlatbuffersStreamingParser";
 
   std::vector<std::string> root_path;
   std::function<void(const MessageT&)> callback;
@@ -75,7 +75,7 @@ private:
   const reflection::Object* reflection_table;
 
 public:
-  FlatbuffersPrinter(
+  FlatbuffersStreamingParser(
     const std::vector<std::string> _root_path={},
     std::function<void(const MessageT&)> _callback=nullptr,
     const std::vector<std::string> _error_path={},
