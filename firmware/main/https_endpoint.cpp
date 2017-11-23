@@ -92,9 +92,7 @@ HttpsEndpoint::make_request(
   }
 
   auto REQUEST = GenerateHttpRequest(
-    scheme,
     host,
-    port,
     root_path,
     path,
     query_str.str()
@@ -187,13 +185,12 @@ HttpsEndpoint::tls_init()
 
   mbedtls_entropy_init(&entropy);
   ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, nullptr, 0);
-  if (ret == 0)
+  if (ret != 0)
   {
-    return true;
+    ESP_LOGE(TAG, "mbedtls_ctr_drbg_seed returned %d", ret);
   }
 
-  ESP_LOGE(TAG, "mbedtls_ctr_drbg_seed returned %d", ret);
-  return false;
+  return (ret == 0);
 }
 
 bool
@@ -385,15 +382,13 @@ HttpsEndpoint::tls_connect()
     mbedtls_x509_crt_verify_info(buf, sizeof(buf), "  ! ", flags);
 
     ESP_LOGE(TAG, "Failed verification info: %s", buf);
-
-    return false;
   }
   else {
     ESP_LOGI(TAG, "Certificate verified.");
     connected = true;
   }
 
-  return connected;;
+  return connected;
 }
 
 bool
@@ -408,9 +403,7 @@ HttpsEndpoint::tls_print_error(int ret)
 
 std::string
 HttpsEndpoint::GenerateHttpRequest(
-  const std::string& scheme,
   const std::string& host,
-  const unsigned short port,
   const std::string& root_path,
   const std::string& path,
   const std::string& query_string
