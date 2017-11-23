@@ -7,10 +7,10 @@
 constexpr char HttpsEndpoint::TAG[];
 
 HttpsEndpoint::HttpsEndpoint(
-  const std::string& _host,
+  stx::string_view _host,
   const unsigned short _port,
-  const std::string& _root_path,
-  const std::string& _cacert_pem
+  stx::string_view _root_path,
+  stx::string_view _cacert_pem
 )
 : host(_host)
 , port(_port)
@@ -31,16 +31,16 @@ HttpsEndpoint::HttpsEndpoint(
 }
 
 HttpsEndpoint::HttpsEndpoint(
-  const std::string& _host,
-  const std::string& _root_path,
-  const std::string& _cacert_pem
+  stx::string_view _host,
+  stx::string_view _root_path,
+  stx::string_view _cacert_pem
 )
 : HttpsEndpoint::HttpsEndpoint(_host, 443, _root_path, _cacert_pem)
 {}
 
 HttpsEndpoint::HttpsEndpoint(
-  const std::string& _host,
-  const std::string& _cacert_pem
+  stx::string_view _host,
+  stx::string_view _cacert_pem
 )
 : HttpsEndpoint::HttpsEndpoint(_host, "", _cacert_pem)
 {}
@@ -66,8 +66,8 @@ HttpsEndpoint::ensure_connected()
 
 bool
 HttpsEndpoint::make_request(
-  const std::string& path,
-  const std::map<std::string, std::string>& extra_query_params,
+  stx::string_view path,
+  const std::map<stx::string_view, stx::string_view>& extra_query_params,
   std::function<void(const std::istream&)> process_body
 )
 {
@@ -154,21 +154,21 @@ HttpsEndpoint::make_request(
 
 bool
 HttpsEndpoint::add_query_param(
-  const std::string& k,
-  const std::string& v
+  stx::string_view k,
+  stx::string_view v
 )
 {
-  query_params.insert(make_pair(k, v));
+  query_params.insert(make_pair(std::string(k), std::string(v)));
   return true;
 }
 
 bool
 HttpsEndpoint::make_request(
-  const std::string& path,
+  stx::string_view path,
   std::function<void(const std::istream&)> process_body
 )
 {
-  const std::map<std::string, std::string> no_extra_query_params;
+  const std::map<stx::string_view, stx::string_view> no_extra_query_params;
 
   return make_request(path, no_extra_query_params, process_body);
 }
@@ -218,8 +218,6 @@ bool
 HttpsEndpoint::tls_connect()
 {
   int ret, flags;
-
-  cacert_pem = cacert_pem;
 
   // initialize saved session storage
   // are we clobbering the existing session here?
@@ -403,10 +401,10 @@ HttpsEndpoint::tls_print_error(int ret)
 
 std::string
 HttpsEndpoint::GenerateHttpRequest(
-  const std::string& host,
-  const std::string& root_path,
-  const std::string& path,
-  const std::string& query_string
+  stx::string_view host,
+  stx::string_view root_path,
+  stx::string_view path,
+  stx::string_view query_string
 )
 {
   std::stringstream http_req;

@@ -7,6 +7,8 @@
 #include <map>
 #include <sstream>
 
+#include "stx/string_view.hpp"
+
 #include "lwip/dns.h"
 #include "lwip/err.h"
 #include "lwip/netdb.h"
@@ -26,37 +28,37 @@ class HttpsEndpoint
 {
 public:
   HttpsEndpoint(
-    const std::string& _host,
+    stx::string_view _host,
     const unsigned short _port,
-    const std::string& _root_path,
-    const std::string& _cacert_pem);
+    stx::string_view _root_path,
+    stx::string_view _cacert_pem);
 
   HttpsEndpoint(
-    const std::string& _host,
-    const std::string& _root_path,
-    const std::string& _cacert_pem);
+    stx::string_view _host,
+    stx::string_view _root_path,
+    stx::string_view _cacert_pem);
 
   HttpsEndpoint(
-    const std::string& _host,
-    const std::string& _cacert_pem);
+    stx::string_view _host,
+    stx::string_view _cacert_pem);
 
   ~HttpsEndpoint();
 
   bool ensure_connected();
 
   bool add_query_param(
-    const std::string& k,
-    const std::string& v
+    stx::string_view k,
+    stx::string_view v
   );
 
   bool make_request(
-    const std::string& path,
-    const std::map<std::string, std::string>& extra_query_params,
+    stx::string_view path,
+    const std::map<stx::string_view, stx::string_view>& extra_query_params,
     std::function<void(const std::istream&)> process_body=nullptr
   );
 
   bool make_request(
-    const std::string& path,
+    stx::string_view path,
     std::function<void(const std::istream&)> process_body=nullptr
   );
 
@@ -65,7 +67,6 @@ protected:
 
   int authmode = MBEDTLS_SSL_VERIFY_REQUIRED;
 
-  std::string scheme = "https://";
   std::string host;
   unsigned short port = 443;
   std::string root_path = "";
@@ -97,9 +98,9 @@ private:
   static bool tls_print_error(int ret);
 
   static std::string GenerateHttpRequest(
-    const std::string& host,
-    const std::string& root_path,
-    const std::string& path,
-    const std::string& query_string
+    stx::string_view host,
+    stx::string_view root_path,
+    stx::string_view path,
+    stx::string_view query_string
   );
 };
