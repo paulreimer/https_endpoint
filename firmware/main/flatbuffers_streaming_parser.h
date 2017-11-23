@@ -109,6 +109,27 @@ public:
     }
   }
 
+  FlatbuffersStreamingParser(
+    const std::istream& resp,
+    const std::vector<std::string> _root_path={},
+    std::function<void(const MessageT&)> _callback=nullptr,
+    const std::vector<std::string> _error_path={},
+    std::function<void(const ErrorT&)> _errback=nullptr)
+  : FlatbuffersStreamingParser(_root_path, _callback, _error_path, _errback)
+  {
+    std::string err;
+    picojson::_parse(
+      *this,
+      std::istreambuf_iterator<char>(resp.rdbuf()),
+      std::istreambuf_iterator<char>(),
+      &err);
+
+    if (!err.empty())
+    {
+      ESP_LOGE(TAG, "Unable to parse JSON response, err = %s", err.c_str());
+    }
+  }
+
   bool
   set_null()
   {
@@ -425,7 +446,7 @@ public:
     int len = firebase_db_fbs_end - firebase_db_fbs_start;
     if (len > 0)
     {
-      // Check for a NULL terminated buffer
+      // Check for a nullptr terminated buffer
       char eof = firebase_db_fbs_start[len - 1];
       if (eof == 0x00)
       {
@@ -439,7 +460,7 @@ public:
         }
       }
       else {
-        ESP_LOGE(TAG, "NULL byte missing from text flatbuffer schema buffer");
+        ESP_LOGE(TAG, "nullptr byte missing from text flatbuffer schema buffer");
       }
     }
     else {
@@ -457,7 +478,7 @@ public:
     int len = firebase_db_bfbs_end - firebase_db_bfbs_start;
     if (len > 0)
     {
-      // Check for a NULL terminated buffer
+      // Check for a nullptr terminated buffer
       char eof = firebase_db_bfbs_start[len - 1];
       if (eof == 0x00)
       {
@@ -478,7 +499,7 @@ public:
         }
       }
       else {
-        ESP_LOGE(TAG, "NULL byte missing from text flatbuffer schema buffer");
+        ESP_LOGE(TAG, "nullptr byte missing from text flatbuffer schema buffer");
       }
     }
     else {
