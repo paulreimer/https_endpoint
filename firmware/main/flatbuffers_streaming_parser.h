@@ -410,7 +410,7 @@ public:
           {
             if (field->type()->base_type() == reflection::Obj)
             {
-              //TODO: could be a union/struct? what then?
+              //TODO(@paulreimer): could be a union/struct? what then?
               reflection_table = schema->objects()->Get(
                 field->type()->index()
               );
@@ -426,7 +426,7 @@ public:
 
                 if (reflection_table != nullptr)
                 {
-                  //TODO: good state, but should this be logged somehow?
+                  //TODO(@paulreimer): good state, but should this be logged somehow?
                 }
               }
             }
