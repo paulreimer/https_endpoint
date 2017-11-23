@@ -11,12 +11,14 @@
 
 #include "firebase_db_generated.h"
 
+#include "stx/string_view.hpp"
+
 #include "esp_log.h"
 
 inline bool
 equality_or_wildcard(
-  const std::string& root,
-  const std::string& current);
+  stx::string_view root,
+  stx::string_view current);
 
 inline bool
 is_a_subpath(
@@ -605,8 +607,8 @@ public:
 
 inline bool
 equality_or_wildcard(
-  const std::string& root,
-  const std::string& current)
+  stx::string_view root,
+  stx::string_view current)
 {
   return ((root == wildcard_sym) || (root == current));
 }
