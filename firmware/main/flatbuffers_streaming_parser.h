@@ -1,3 +1,5 @@
+#pragma once
+
 #include "picojson.h"
 
 #include <vector>
@@ -35,10 +37,10 @@ private:
   const char TAG[27] = "FlatbuffersStreamingParser";
 
   std::vector<std::string> root_path;
-  std::function<void(const MessageT&)> callback;
+  std::function<bool(const MessageT&)> callback;
 
   std::vector<std::string> error_path;
-  std::function<void(const ErrorT&)> errback;
+  std::function<bool(const ErrorT&)> errback;
 
   flatbuffers::Parser parser;
   bool flatbuffers_parser_ready = false;
@@ -67,15 +69,8 @@ private:
 public:
   FlatbuffersStreamingParser(
     stx::string_view text_schema,
-    stx::string_view binary_schema,
-    const std::vector<std::string>& _root_path={},
-    std::function<void(const MessageT&)> _callback=nullptr,
-    const std::vector<std::string>& _error_path={},
-    std::function<void(const ErrorT&)> _errback=nullptr)
-  : root_path(_root_path)
-  , callback(_callback)
-  , error_path(_error_path)
-  , errback(_errback)
+    stx::string_view binary_schema
+  )
   {
     // Allow trailing commas, and optional quotes around identifiers/values
     parser.opts.strict_json = false;
@@ -101,19 +96,21 @@ public:
     }
   }
 
-  FlatbuffersStreamingParser(
+  bool parse_stream(
     const std::istream& resp,
-    stx::string_view text_schema,
-    stx::string_view binary_schema,
     const std::vector<std::string>& _root_path={},
-    std::function<void(const MessageT&)> _callback=nullptr,
+    std::function<bool(const MessageT&)> _callback=nullptr,
     const std::vector<std::string>& _error_path={},
-    std::function<void(const ErrorT&)> _errback=nullptr)
-  : FlatbuffersStreamingParser(
-      text_schema, binary_schema, _root_path, _callback, _error_path, _errback
-    )
+    std::function<bool(const ErrorT&)> _errback=nullptr
+  )
   {
     std::string err;
+
+    root_path = _root_path;
+    callback = _callback;
+    error_path = _error_path;
+    errback = _errback;
+
     picojson::_parse(
       *this,
       std::istreambuf_iterator<char>(resp.rdbuf()),
@@ -124,6 +121,8 @@ public:
     {
       ESP_LOGE(TAG, "Unable to parse JSON response, err = %s", err.c_str());
     }
+
+    return (err.empty() == true);
   }
 
   bool
@@ -558,7 +557,7 @@ public:
               flatbuf->UnPackTo(&message);
 
               // Trigger the callback
-              callback(message);
+              ok = callback(message);
             }
             else {
               ESP_LOGE(TAG, "Couldn't verify flatbuffer message type");
@@ -583,7 +582,7 @@ public:
               flatbuf->UnPackTo(&error);
 
               // Trigger the errback
-              errback(error);
+              ok = errback(error);
             }
             else {
               ESP_LOGE(TAG, "Couldn't verify flatbuffer error type");
