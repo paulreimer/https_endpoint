@@ -174,7 +174,6 @@ HttpsEndpoint::make_request(
     }
   }
 
-  std::cout << req_str << std::endl;
   ESP_LOGI(TAG, "%d bytes written", ret);
 
   // Read the response
