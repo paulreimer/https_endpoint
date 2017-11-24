@@ -9,8 +9,6 @@
 // simple output to JSON string:
 #include "flatbuffers/minireflect.h"
 
-#include "firebase_db_generated.h"
-
 #include "stx/string_view.hpp"
 
 #include "esp_log.h"
@@ -24,16 +22,6 @@ inline bool
 is_a_subpath(
   const std::vector<std::string>& current_path,
   const std::vector<std::string>& root_path);
-
-extern const char firebase_db_fbs_start[]
-  asm("_binary_firebase_db_fbs_start");
-extern const char firebase_db_fbs_end[]
-  asm("_binary_firebase_db_fbs_end");
-
-extern const char firebase_db_bfbs_start[]
-  asm("_binary_firebase_db_bfbs_start");
-extern const char firebase_db_bfbs_end[]
-  asm("_binary_firebase_db_bfbs_end");
 
 constexpr char wildcard_sym[] = "*";
 
@@ -78,9 +66,11 @@ private:
 
 public:
   FlatbuffersStreamingParser(
-    const std::vector<std::string> _root_path={},
+    stx::string_view text_schema,
+    stx::string_view binary_schema,
+    const std::vector<std::string>& _root_path={},
     std::function<void(const MessageT&)> _callback=nullptr,
-    const std::vector<std::string> _error_path={},
+    const std::vector<std::string>& _error_path={},
     std::function<void(const ErrorT&)> _errback=nullptr)
   : root_path(_root_path)
   , callback(_callback)
@@ -93,14 +83,14 @@ public:
     // Support additional (ignored) fields present in JSON but not in the schema
     parser.opts.skip_unexpected_fields_in_json = true;
 
-    if (parse_flatbuffers_text_schema())
+    if (parse_flatbuffers_text_schema(text_schema))
     {
       // Success
       ESP_LOGI(TAG, "Successfully parsed text flatbuffer schema buffer");
       flatbuffers_parser_ready = true;
     }
 
-    if (parse_flatbuffers_binary_schema())
+    if (parse_flatbuffers_binary_schema(binary_schema))
     {
       // Success
       ESP_LOGI(TAG, "Successfully parsed binary flatbuffer schema buffer");
@@ -113,11 +103,15 @@ public:
 
   FlatbuffersStreamingParser(
     const std::istream& resp,
-    const std::vector<std::string> _root_path={},
+    stx::string_view text_schema,
+    stx::string_view binary_schema,
+    const std::vector<std::string>& _root_path={},
     std::function<void(const MessageT&)> _callback=nullptr,
-    const std::vector<std::string> _error_path={},
+    const std::vector<std::string>& _error_path={},
     std::function<void(const ErrorT&)> _errback=nullptr)
-  : FlatbuffersStreamingParser(_root_path, _callback, _error_path, _errback)
+  : FlatbuffersStreamingParser(
+      text_schema, binary_schema, _root_path, _callback, _error_path, _errback
+    )
   {
     std::string err;
     picojson::_parse(
@@ -441,18 +435,17 @@ public:
   }
 
   bool
-  parse_flatbuffers_text_schema()
+  parse_flatbuffers_text_schema(stx::string_view buf)
   {
     // Load flatbuffers text schema file from buffer
     // Check for a non-zero buffer length
-    int len = firebase_db_fbs_end - firebase_db_fbs_start;
-    if (len > 0)
+    if (!buf.empty())
     {
       // Check for a nullptr terminated buffer
-      char eof = firebase_db_fbs_start[len - 1];
+      char eof = buf[buf.size() - 1];
       if (eof == 0x00)
       {
-        bool ok = parser.Parse(firebase_db_fbs_start, nullptr);
+        bool ok = parser.Parse(buf.data(), nullptr);
         if (ok)
         {
           return true;
@@ -473,24 +466,23 @@ public:
   }
 
   bool
-  parse_flatbuffers_binary_schema()
+  parse_flatbuffers_binary_schema(stx::string_view buf)
   {
     // Load flatbuffers text schema file from buffer
     // Check for a non-zero buffer length
-    int len = firebase_db_bfbs_end - firebase_db_bfbs_start;
-    if (len > 0)
+    if (!buf.empty())
     {
       // Check for a nullptr terminated buffer
-      char eof = firebase_db_bfbs_start[len - 1];
+      char eof = buf[buf.size() - 1];
       if (eof == 0x00)
       {
         // Verify the buffer as valid flatbuffer
         flatbuffers::Verifier verifier(
-          reinterpret_cast<const uint8_t *>(firebase_db_bfbs_start), len);
+          reinterpret_cast<const uint8_t *>(buf.data()), buf.size());
         if (reflection::VerifySchemaBuffer(verifier))
         {
           // Parse a buffer containing the binary schema
-          schema = reflection::GetSchema(firebase_db_bfbs_start);
+          schema = reflection::GetSchema(buf.data());
           if (schema != nullptr)
           {
             return true;
@@ -593,7 +585,10 @@ public:
           }
         }
         else {
-          ESP_LOGE(TAG, "Couldn't parse JSON string into valid flatbuffer of type '%s'", MessageT::GetFullyQualifiedName());
+          ESP_LOGE(TAG,
+            "Couldn't parse JSON string '%s' into valid flatbuffer of type '%s'",
+            ss.str().c_str(), MessageT::GetFullyQualifiedName()
+          );
         }
       }
       else {
