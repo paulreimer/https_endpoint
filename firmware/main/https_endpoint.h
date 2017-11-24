@@ -30,12 +30,6 @@ public:
   HttpsEndpoint(
     stx::string_view _host,
     const unsigned short _port,
-    stx::string_view _root_path,
-    stx::string_view _cacert_pem);
-
-  HttpsEndpoint(
-    stx::string_view _host,
-    stx::string_view _root_path,
     stx::string_view _cacert_pem);
 
   HttpsEndpoint(
@@ -51,16 +45,66 @@ public:
     stx::string_view v
   );
 
-  bool make_request(
+  bool add_header(
+    stx::string_view k,
+    stx::string_view v
+  );
+
+  std::string generate_request(
+    stx::string_view method,
     stx::string_view path,
     const std::map<stx::string_view, stx::string_view>& extra_query_params,
-    std::function<void(const std::istream&)> process_body=nullptr
+    const std::map<stx::string_view, stx::string_view>& extra_headers,
+    stx::string_view req_body=""
+  );
+
+  // Main request call, others are shortcuts to this
+  bool make_request(
+    stx::string_view method,
+    stx::string_view path,
+    const std::map<stx::string_view, stx::string_view>& extra_query_params,
+    const std::map<stx::string_view, stx::string_view>& extra_headers,
+    stx::string_view req_body="",
+    std::function<void(const std::istream&)> process_resp_body=nullptr
+  );
+
+  // Generic method, optional headers/query
+  bool make_request(
+    stx::string_view method,
+    stx::string_view path,
+    const std::map<stx::string_view, stx::string_view>& extra_headers,
+    stx::string_view req_body="",
+    std::function<void(const std::istream&)> process_resp_body=nullptr
   );
 
   bool make_request(
+    stx::string_view method,
     stx::string_view path,
-    std::function<void(const std::istream&)> process_body=nullptr
+    stx::string_view req_body="",
+    std::function<void(const std::istream&)> process_resp_body=nullptr
   );
+
+  // Optional request body
+  bool make_request(
+    stx::string_view method,
+    stx::string_view path,
+    const std::map<stx::string_view, stx::string_view>& extra_query_params,
+    const std::map<stx::string_view, stx::string_view>& extra_headers,
+    std::function<void(const std::istream&)> process_resp_body=nullptr
+  );
+  bool make_request(
+    stx::string_view method,
+    stx::string_view path,
+    const std::map<stx::string_view, stx::string_view>& extra_headers,
+    std::function<void(const std::istream&)> process_resp_body=nullptr
+  );
+
+  bool make_request(
+    stx::string_view method,
+    stx::string_view path,
+    std::function<void(const std::istream&)> process_resp_body=nullptr
+  );
+
 
 protected:
   static constexpr char TAG[] = "HttpsEndpoint";
@@ -69,9 +113,9 @@ protected:
 
   std::string host;
   unsigned short port = 443;
-  std::string root_path = "";
   std::string cacert_pem;
 
+  std::map<std::string, std::string> headers;
   std::map<std::string, std::string> query_params;
 
   std::function<void(HttpsResponseStreambuf&)> process_body;
@@ -96,11 +140,4 @@ private:
   bool tls_connect();
 
   static bool tls_print_error(int ret);
-
-  static std::string GenerateHttpRequest(
-    stx::string_view host,
-    stx::string_view root_path,
-    stx::string_view path,
-    stx::string_view query_string
-  );
 };

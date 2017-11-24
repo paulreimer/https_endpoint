@@ -9,14 +9,15 @@ constexpr char HttpsEndpoint::TAG[];
 HttpsEndpoint::HttpsEndpoint(
   stx::string_view _host,
   const unsigned short _port,
-  stx::string_view _root_path,
   stx::string_view _cacert_pem
 )
 : host(_host)
 , port(_port)
-, root_path(_root_path)
 , cacert_pem(_cacert_pem)
 {
+  add_header("Host", host);
+  add_header("User-Agent", "esp-idf/1.0 esp32");
+
   if (!initialized)
   {
     // mbedtls library init
@@ -32,17 +33,9 @@ HttpsEndpoint::HttpsEndpoint(
 
 HttpsEndpoint::HttpsEndpoint(
   stx::string_view _host,
-  stx::string_view _root_path,
   stx::string_view _cacert_pem
 )
-: HttpsEndpoint::HttpsEndpoint(_host, 443, _root_path, _cacert_pem)
-{}
-
-HttpsEndpoint::HttpsEndpoint(
-  stx::string_view _host,
-  stx::string_view _cacert_pem
-)
-: HttpsEndpoint::HttpsEndpoint(_host, "", _cacert_pem)
+: HttpsEndpoint::HttpsEndpoint(_host, 443, _cacert_pem)
 {}
 
 HttpsEndpoint::~HttpsEndpoint()
@@ -64,41 +57,103 @@ HttpsEndpoint::ensure_connected()
   return ok;
 }
 
-bool
-HttpsEndpoint::make_request(
+std::string
+HttpsEndpoint::generate_request(
+  stx::string_view method,
   stx::string_view path,
   const std::map<stx::string_view, stx::string_view>& extra_query_params,
-  std::function<void(const std::istream&)> process_body
+  const std::map<stx::string_view, stx::string_view>& extra_headers,
+  stx::string_view req_body
 )
 {
-  int ret;
+  std::stringstream http_req;
 
-  // Write the request
-  ESP_LOGI(TAG, "Writing HTTP request...");
+  // Request path
+  http_req
+  << method << " " << path;
 
-  std::stringstream query_str;
-
+  // Query string (?x=1&y=2 ...)
   char sep = '?';
   for (const auto& param : query_params)
   {
-    query_str << sep << param.first << "=" << param.second;
-    sep = '&';
-  }
+    if (extra_query_params.find(param.first) == extra_query_params.end())
+    {
+      // Do not set an query param if it is overriden for this request
+      http_req
+      << sep << param.first << "=" << param.second;
 
+      sep = '&';
+    }
+  }
   for (const auto& param : extra_query_params)
   {
-    query_str << sep << param.first << "=" << param.second;
+    http_req
+    << sep << param.first << "=" << param.second;
+
     sep = '&';
   }
 
-  auto REQUEST = GenerateHttpRequest(
-    host,
-    root_path,
-    path,
-    query_str.str()
+  // Protocol
+  http_req
+  << " HTTP/1.0\r\n";
+
+  // Headers (X-Key: Value\r\n ...)
+  for (const auto& hdr : headers)
+  {
+    // We will be setting Content-Length, so ignore it here
+    if (hdr.first != "Content-Length")
+    {
+      // Do not set a header if it is overriden for this request
+      if (extra_headers.find(hdr.first) == extra_headers.end())
+      {
+        http_req
+        << hdr.first << ": " << hdr.second << "\r\n";
+      }
+    }
+  }
+  for (const auto& hdr : extra_headers)
+  {
+    // We will be setting Content-Length, so ignore it here
+    if (hdr.first != "Content-Length")
+    {
+      http_req
+      << hdr.first << ": " << hdr.second << "\r\n";
+    }
+  }
+
+  http_req
+  // We SHOULD include Content-Length, and MUST for HTTP 1.0
+  << "Content-Length: " << req_body.size() << "\r\n"
+  // Trailing newline after headers, followed by (optional) body
+  << "\r\n"
+  << req_body;
+
+  return http_req.str();
+}
+
+bool
+HttpsEndpoint::make_request(
+  stx::string_view method,
+  stx::string_view path,
+  const std::map<stx::string_view, stx::string_view>& extra_query_params,
+  const std::map<stx::string_view, stx::string_view>& extra_headers,
+  stx::string_view req_body,
+  std::function<void(const std::istream&)> process_resp_body
+)
+{
+  // Write the request
+  ESP_LOGI(TAG, "Writing HTTP request...");
+
+  //stx::string_view req_str(http_req.str());
+  std::string req_str(
+    generate_request(
+      method, path, extra_query_params, extra_headers, req_body
+    )
   );
 
-  while ((ret = mbedtls_ssl_write(&ssl, (const unsigned char *)REQUEST.data(), REQUEST.size())) <= 0)
+  int ret;
+
+  while ((ret = mbedtls_ssl_write(&ssl, (const uint8_t*)req_str.data(), req_str.size())) <= 0)
   {
     if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
     {
@@ -113,6 +168,7 @@ HttpsEndpoint::make_request(
     }
   }
 
+  std::cout << req_str << std::endl;
   ESP_LOGI(TAG, "%d bytes written", ret);
 
   // Read the response
@@ -137,9 +193,9 @@ HttpsEndpoint::make_request(
 
   if (body_was_found)
   {
-    if (process_body)
+    if (process_resp_body)
     {
-      process_body(resp);
+      process_resp_body(resp);
     }
   }
   else {
@@ -152,6 +208,79 @@ HttpsEndpoint::make_request(
   return body_was_found;
 }
 
+// Generic method, optional headers/query
+bool
+HttpsEndpoint::make_request(
+  stx::string_view method,
+  stx::string_view path,
+  const std::map<stx::string_view, stx::string_view>& extra_headers,
+  stx::string_view req_body,
+  std::function<void(const std::istream&)> process_resp_body
+)
+{
+  return make_request(
+    method, path, {},
+    extra_headers,
+    req_body,
+    process_resp_body
+  );
+}
+
+bool
+HttpsEndpoint::make_request(
+  stx::string_view method,
+  stx::string_view path,
+  stx::string_view req_body,
+  std::function<void(const std::istream&)> process_resp_body
+)
+{
+  return make_request(method, path, {}, {}, req_body, process_resp_body);
+}
+
+// Optional request body
+bool
+HttpsEndpoint::make_request(
+  stx::string_view method,
+  stx::string_view path,
+  const std::map<stx::string_view, stx::string_view>& extra_query_params,
+  const std::map<stx::string_view, stx::string_view>& extra_headers,
+  std::function<void(const std::istream&)> process_resp_body
+)
+{
+  return make_request(method, path, {}, extra_headers, "", process_resp_body);
+}
+
+bool
+HttpsEndpoint::make_request(
+  stx::string_view method,
+  stx::string_view path,
+  const std::map<stx::string_view, stx::string_view>& extra_headers,
+  std::function<void(const std::istream&)> process_resp_body
+)
+{
+  return make_request(method, path, {}, extra_headers, "", process_resp_body);
+}
+
+bool
+HttpsEndpoint::make_request(
+  stx::string_view method,
+  stx::string_view path,
+  std::function<void(const std::istream&)> process_resp_body
+)
+{
+  return make_request(method, path, {}, {}, "", process_resp_body);
+}
+
+bool
+HttpsEndpoint::add_header(
+  stx::string_view k,
+  stx::string_view v
+)
+{
+  headers.insert(make_pair(std::string(k), std::string(v)));
+  return true;
+}
+
 bool
 HttpsEndpoint::add_query_param(
   stx::string_view k,
@@ -160,17 +289,6 @@ HttpsEndpoint::add_query_param(
 {
   query_params.insert(make_pair(std::string(k), std::string(v)));
   return true;
-}
-
-bool
-HttpsEndpoint::make_request(
-  stx::string_view path,
-  std::function<void(const std::istream&)> process_body
-)
-{
-  const std::map<stx::string_view, stx::string_view> no_extra_query_params;
-
-  return make_request(path, no_extra_query_params, process_body);
 }
 
 bool
@@ -399,21 +517,3 @@ HttpsEndpoint::tls_print_error(int ret)
   return true;
 }
 
-std::string
-HttpsEndpoint::GenerateHttpRequest(
-  stx::string_view host,
-  stx::string_view root_path,
-  stx::string_view path,
-  stx::string_view query_string
-)
-{
-  std::stringstream http_req;
-
-  http_req
-  << "GET " << root_path << path << query_string << " HTTP/1.0\r\n"
-  << "Host: " << host << "\r\n"
-  << "User-Agent: esp-idf/1.0 esp32\r\n"
-  << "\r\n";
-
-  return http_req.str();
-}
