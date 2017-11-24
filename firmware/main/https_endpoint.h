@@ -30,25 +30,23 @@ public:
   HttpsEndpoint(
     stx::string_view _host,
     const unsigned short _port,
-    stx::string_view _cacert_pem);
+    stx::string_view _cacert_pem
+  );
 
   HttpsEndpoint(
     stx::string_view _host,
-    stx::string_view _cacert_pem);
+    stx::string_view _cacert_pem
+  );
 
   ~HttpsEndpoint();
 
   bool ensure_connected();
 
-  bool add_query_param(
-    stx::string_view k,
-    stx::string_view v
-  );
+  bool add_query_param(stx::string_view k, stx::string_view v);
+  bool has_query_param(stx::string_view k);
 
-  bool add_header(
-    stx::string_view k,
-    stx::string_view v
-  );
+  bool add_header(stx::string_view k, stx::string_view v);
+  bool has_header(stx::string_view k);
 
   std::string generate_request(
     stx::string_view method,

@@ -200,11 +200,12 @@ HttpsEndpoint::make_request(
     header_size++;
   }
 
-  if (body_was_found)
+  bool ok = body_was_found;
+  if (ok)
   {
     if (process_resp_body)
     {
-      process_resp_body(resp);
+      ok = process_resp_body(resp);
     }
   }
   else {
@@ -217,7 +218,7 @@ HttpsEndpoint::make_request(
   ESP_LOGI(TAG, "Finished parsing HTTP response.");
 
   mbedtls_ssl_close_notify(&ssl);
-  return body_was_found;
+  return ok;
 }
 
 // Generic method, optional headers/query
@@ -284,23 +285,29 @@ HttpsEndpoint::make_request(
 }
 
 bool
-HttpsEndpoint::add_header(
-  stx::string_view k,
-  stx::string_view v
-)
+HttpsEndpoint::add_query_param(stx::string_view k, stx::string_view v)
+{
+  query_params[std::string(k)] = std::string(v);
+  return true;
+}
+
+bool
+HttpsEndpoint::has_query_param(stx::string_view k)
+{
+  return query_params.find(std::string(k)) != query_params.end();
+}
+
+bool
+HttpsEndpoint::add_header(stx::string_view k, stx::string_view v)
 {
   headers[std::string(k)] = std::string(v);
   return true;
 }
 
 bool
-HttpsEndpoint::add_query_param(
-  stx::string_view k,
-  stx::string_view v
-)
+HttpsEndpoint::has_header(stx::string_view k)
 {
-  query_params[std::string(k)] = std::string(v);
-  return true;
+  return headers.find(std::string(k)) != headers.end();
 }
 
 bool
