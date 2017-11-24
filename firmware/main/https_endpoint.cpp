@@ -142,7 +142,10 @@ HttpsEndpoint::make_request(
 )
 {
   // Write the request
-  ESP_LOGI(TAG, "Writing HTTP request...");
+  ESP_LOGI(TAG, "Writing HTTP request %.*s %.*s",
+    host.size(), host.data(),
+    path.size(), path.data()
+  );
 
   //stx::string_view req_str(http_req.str());
   std::string req_str(
@@ -181,6 +184,7 @@ HttpsEndpoint::make_request(
   bool body_was_found = false;
   size_t delim_pos = 0;
   char c;
+  size_t header_size = 0;
   while (resp.get(c))
   {
     delim_pos = (c == delim[delim_pos])? (delim_pos+1) : 0;
@@ -189,6 +193,8 @@ HttpsEndpoint::make_request(
       body_was_found = true;
       break;
     }
+
+    header_size++;
   }
 
   if (body_was_found)
@@ -199,7 +205,10 @@ HttpsEndpoint::make_request(
     }
   }
   else {
-    ESP_LOGW(TAG, "Could not find JSON body in HTTP response");
+    ESP_LOGW(TAG,
+      "Could not find JSON body in HTTP response, read %d header bytes",
+      header_size
+    );
   }
 
   ESP_LOGI(TAG, "Finished parsing HTTP response.");
