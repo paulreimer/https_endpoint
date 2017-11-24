@@ -141,6 +141,9 @@ HttpsEndpoint::make_request(
   std::function<bool(const std::istream&)> process_resp_body
 )
 {
+  // Make sure we are connected, re-use an existing session if possible/required
+  ensure_connected();
+
   // Write the request
   ESP_LOGI(TAG, "Writing HTTP request %.*s %.*s",
     host.size(), host.data(),
