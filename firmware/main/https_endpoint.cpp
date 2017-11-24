@@ -138,7 +138,7 @@ HttpsEndpoint::make_request(
   const std::map<stx::string_view, stx::string_view>& extra_query_params,
   const std::map<stx::string_view, stx::string_view>& extra_headers,
   stx::string_view req_body,
-  std::function<void(const std::istream&)> process_resp_body
+  std::function<bool(const std::istream&)> process_resp_body
 )
 {
   // Write the request
@@ -215,7 +215,7 @@ HttpsEndpoint::make_request(
   stx::string_view path,
   const std::map<stx::string_view, stx::string_view>& extra_headers,
   stx::string_view req_body,
-  std::function<void(const std::istream&)> process_resp_body
+  std::function<bool(const std::istream&)> process_resp_body
 )
 {
   return make_request(
@@ -231,7 +231,7 @@ HttpsEndpoint::make_request(
   stx::string_view method,
   stx::string_view path,
   stx::string_view req_body,
-  std::function<void(const std::istream&)> process_resp_body
+  std::function<bool(const std::istream&)> process_resp_body
 )
 {
   return make_request(method, path, {}, {}, req_body, process_resp_body);
@@ -244,7 +244,7 @@ HttpsEndpoint::make_request(
   stx::string_view path,
   const std::map<stx::string_view, stx::string_view>& extra_query_params,
   const std::map<stx::string_view, stx::string_view>& extra_headers,
-  std::function<void(const std::istream&)> process_resp_body
+  std::function<bool(const std::istream&)> process_resp_body
 )
 {
   return make_request(method, path, {}, extra_headers, "", process_resp_body);
@@ -255,7 +255,7 @@ HttpsEndpoint::make_request(
   stx::string_view method,
   stx::string_view path,
   const std::map<stx::string_view, stx::string_view>& extra_headers,
-  std::function<void(const std::istream&)> process_resp_body
+  std::function<bool(const std::istream&)> process_resp_body
 )
 {
   return make_request(method, path, {}, extra_headers, "", process_resp_body);
@@ -265,7 +265,7 @@ bool
 HttpsEndpoint::make_request(
   stx::string_view method,
   stx::string_view path,
-  std::function<void(const std::istream&)> process_resp_body
+  std::function<bool(const std::istream&)> process_resp_body
 )
 {
   return make_request(method, path, {}, {}, "", process_resp_body);
