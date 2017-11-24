@@ -18,12 +18,14 @@
 inline bool
 equality_or_wildcard(
   stx::string_view root,
-  stx::string_view current);
+  stx::string_view current
+);
 
 inline bool
 is_a_subpath(
   const std::vector<std::string>& current_path,
-  const std::vector<std::string>& root_path);
+  const std::vector<std::string>& root_path
+);
 
 constexpr char wildcard_sym[] = "*";
 
@@ -45,8 +47,10 @@ private:
   flatbuffers::Parser parser;
   bool flatbuffers_parser_ready = false;
 
+  bool is_parse_error = false;
+
   // Trigger errback instead of callback when error path matches
-  bool is_error = false;
+  bool is_error_path = false;
 
   // Input parsing state
   int object_depth = 0;
@@ -72,6 +76,8 @@ public:
     stx::string_view binary_schema
   )
   {
+    clear();
+
     // Allow trailing commas, and optional quotes around identifiers/values
     parser.opts.strict_json = false;
 
@@ -96,6 +102,29 @@ public:
     }
   }
 
+  void clear()
+  {
+    // Reset error state
+    is_parse_error = false;
+
+    // Trigger errback instead of callback when error path matches
+    is_error_path = false;
+
+    // Input parsing state
+    object_depth = 0;
+    array_depth = 0;
+    object_idx = 0;
+    array_idx = 0;
+    current_path.clear();
+    current_key.clear();
+
+    // Output state
+    ss.str("");
+    emit_json = false;
+    needs_close_array = false;
+    needs_close_object = false;
+  }
+
   bool parse_stream(
     const std::istream& resp,
     const std::vector<std::string>& _root_path={},
@@ -105,6 +134,9 @@ public:
   )
   {
     std::string err;
+
+    // Reset existing state
+    clear();
 
     root_path = _root_path;
     callback = _callback;
@@ -122,7 +154,10 @@ public:
       ESP_LOGE(TAG, "Unable to parse JSON response, err = %s", err.c_str());
     }
 
-    return (err.empty() == true);
+    return (
+      (err.empty() == true) &&
+      (is_parse_error == false)
+    );
   }
 
   bool
@@ -249,11 +284,11 @@ public:
     current_path.push_back(current_key);
 
     // Check for error path first
-    is_error = is_a_subpath(current_path, error_path);
+    is_error_path = is_a_subpath(current_path, error_path);
 
     auto emit_json_prev = emit_json;
     // Start outputting JSON if either with error or message path
-    emit_json = (is_error || is_a_subpath(current_path, root_path));
+    emit_json = (is_error_path || is_a_subpath(current_path, root_path));
 
     if (emit_json)
     {
@@ -319,7 +354,10 @@ public:
           ss << "}";
         }
 
-        process_item();
+        if (process_item() == false)
+        {
+          is_parse_error = true;
+        }
       }
       emit_json = false;
     }
@@ -518,7 +556,7 @@ public:
     {
       // Determine whether to expect to parse an Error type or a Message type
       ok = parser.SetRootType(
-        (is_error)?
+        (is_error_path)?
         ErrorT::TableType::GetFullyQualifiedName() :
         MessageT::TableType::GetFullyQualifiedName()
       );
@@ -538,7 +576,7 @@ public:
             parser.builder_.GetSize());
 
           // Take the callback path
-          if (!is_error)
+          if (!is_error_path)
           {
             // Verify as valid message type
             ok = verifier.VerifyBuffer<
@@ -566,9 +604,7 @@ public:
           // Take the errback path
           else {
             // Verify as valid error type
-            ok = verifier.VerifyBuffer<
-              typename ErrorT::TableType>(
-                nullptr);
+            ok = verifier.VerifyBuffer<typename ErrorT::TableType>(nullptr);
             if (ok)
             {
               // Instantiate a C++ gen-object-api object for the error
