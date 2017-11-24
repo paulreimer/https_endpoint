@@ -14,6 +14,7 @@ HttpsEndpoint::HttpsEndpoint(
 : host(_host)
 , port(_port)
 , cacert_pem(_cacert_pem)
+, saved_session{0}
 {
   add_header("Host", host);
   add_header("User-Agent", "esp-idf/1.0 esp32");
@@ -348,106 +349,116 @@ HttpsEndpoint::tls_connect()
 {
   int ret, flags;
 
-  // initialize saved session storage
-  // are we clobbering the existing session here?
-  if (&saved_session != nullptr)
+  if (connected == false)
   {
-    memset(&saved_session, 0, sizeof(mbedtls_ssl_session));
-  }
+    // (Re)initialize saved session storage
+    if (&saved_session != nullptr)
+    {
+      memset(&saved_session, 0, sizeof(mbedtls_ssl_session));
+    }
 
-  ESP_LOGI(TAG, "Setting up the SSL/TLS structure...");
+    ESP_LOGI(TAG, "Setting up the SSL/TLS structure...");
 
-  mbedtls_ssl_config_init(&conf);
+    mbedtls_ssl_config_init(&conf);
 
-  ret = mbedtls_ssl_config_defaults(
-    &conf,
-    MBEDTLS_SSL_IS_CLIENT,
-    MBEDTLS_SSL_TRANSPORT_STREAM,
-    MBEDTLS_SSL_PRESET_DEFAULT
-  );
-  if (ret != 0)
-  {
-    ESP_LOGE(TAG, "mbedtls_ssl_config_defaults returned %d", ret);
-    tls_cleanup();
-    tls_print_error(ret);
+    ret = mbedtls_ssl_config_defaults(
+      &conf,
+      MBEDTLS_SSL_IS_CLIENT,
+      MBEDTLS_SSL_TRANSPORT_STREAM,
+      MBEDTLS_SSL_PRESET_DEFAULT
+    );
+    if (ret != 0)
+    {
+      ESP_LOGE(TAG, "mbedtls_ssl_config_defaults returned %d", ret);
+      tls_cleanup();
+      tls_print_error(ret);
 
-    return false;
-  }
+      return false;
+    }
 
-  mbedtls_ssl_conf_authmode(&conf, authmode);
-  mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
+    mbedtls_ssl_conf_authmode(&conf, authmode);
+    mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
 
-  ESP_LOGI(TAG, "Loading the CA root certificate...");
+    ESP_LOGI(TAG, "Loading the CA root certificate...");
 
-  mbedtls_x509_crt_init(&cacert);
+    mbedtls_x509_crt_init(&cacert);
 
-  ret = mbedtls_x509_crt_parse(
-    &cacert,
-    (const unsigned char*)cacert_pem.data(),
-    cacert_pem.size()
-  );
-  if (ret < 0)
-  {
-    ESP_LOGE(TAG, "mbedtls_x509_crt_parse returned -0x%x\n\n", -ret);
+    ret = mbedtls_x509_crt_parse(
+      &cacert,
+      (const unsigned char*)cacert_pem.data(),
+      cacert_pem.size()
+    );
+    if (ret < 0)
+    {
+      ESP_LOGE(TAG, "mbedtls_x509_crt_parse returned -0x%x\n\n", -ret);
 
-    return false;
-  }
+      return false;
+    }
 
-  mbedtls_ssl_conf_ca_chain(&conf, &cacert, nullptr);
+    mbedtls_ssl_conf_ca_chain(&conf, &cacert, nullptr);
 #ifdef CONFIG_MBEDTLS_DEBUG
-  mbedtls_esp_enable_debug_log(&conf, 4);
+    mbedtls_esp_enable_debug_log(&conf, 4);
 #endif
 
-  ret = mbedtls_ssl_setup(&ssl, &conf);
-  if (ret != 0)
-  {
-    ESP_LOGE(TAG, "mbedtls_ssl_setup returned -0x%x\n\n", -ret);
-    tls_cleanup();
-    tls_print_error(ret);
-
-    return false;
-  }
-
-  ESP_LOGI(TAG, "Setting hostname for TLS session...");
-
-  // Hostname set here should match CN in server certificate
-  ret = mbedtls_ssl_set_hostname(&ssl, host.c_str());
-  if (ret != 0)
-  {
-    ESP_LOGE(TAG, "mbedtls_ssl_set_hostname returned -0x%x", -ret);
-
-    return false;
-  }
-
-  if ((connected == true) &&
-      (&saved_session != nullptr))
-  {
-    // reconnecting and hopefully re-using existing session ticket
-    mbedtls_net_free(&server_fd);
-
-    ret = mbedtls_ssl_session_reset(&ssl);
+    ret = mbedtls_ssl_setup(&ssl, &conf);
     if (ret != 0)
     {
-      ESP_LOGE(TAG, "mbedtls_ssl_session_reset returned -%x", -ret);
+      ESP_LOGE(TAG, "mbedtls_ssl_setup returned -0x%x\n\n", -ret);
       tls_cleanup();
       tls_print_error(ret);
 
       return false;
     }
 
-    ret = mbedtls_ssl_set_session(&ssl, &saved_session);
+    ESP_LOGI(TAG, "Setting hostname for TLS session...");
+
+    // Hostname set here should match CN in server certificate
+    ret = mbedtls_ssl_set_hostname(&ssl, host.c_str());
     if (ret != 0)
     {
-      ESP_LOGE(TAG, "mbedtls_ssl_set_session returned -%x", -ret);
-      tls_cleanup();
-      tls_print_error(ret);
+      ESP_LOGE(TAG, "mbedtls_ssl_set_hostname returned -0x%x", -ret);
 
       return false;
     }
-  }
-  else {
+
     // connecting for the first time
     mbedtls_net_init(&server_fd);
+  }
+  else {
+    // We are (or were) already connected
+    if (&saved_session != nullptr)
+    {
+      // Reconnecting and hopefully re-using existing session ticket
+      ret = mbedtls_ssl_session_reset(&ssl);
+      if (ret == 0)
+      {
+        ret = mbedtls_ssl_set_session(&ssl, &saved_session);
+        if (ret != 0)
+        {
+          ESP_LOGE(TAG, "mbedtls_ssl_set_session returned -%x", -ret);
+          tls_print_error(ret);
+
+          connected = false;
+        }
+      }
+      else {
+        ESP_LOGE(TAG, "mbedtls_ssl_session_reset returned -%x", -ret);
+        tls_print_error(ret);
+
+        connected = false;
+      }
+    }
+    else {
+      connected = false;
+    }
+
+    // Did we fail to find a valid session? retry again
+    if (connected == false)
+    {
+      tls_cleanup();
+      ESP_LOGW(TAG, "Invalid or missing SSL session, reconnecting fully");
+      return tls_connect();
+    }
   }
 
   std::stringstream port_str;
