@@ -345,7 +345,14 @@ public:
       }
       else if (needs_close_object)
       {
-        ss << "}}";
+        // We did expect at least one of these
+        ss << "}";
+
+        if (!root_path.empty())
+        {
+          // We will be missing one of these at this point in regular parsing
+          ss << "}";
+        }
         needs_close_object = false;
       }
       else {
