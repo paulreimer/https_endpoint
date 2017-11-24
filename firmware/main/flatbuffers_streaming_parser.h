@@ -278,8 +278,7 @@ public:
         needs_close_object = true;
       }
       else {
-        if (object_idx == 0)
-        //if (!needs_close_object)
+        if (!needs_close_object)
         {
           ss << "{";
           needs_close_object = true;
