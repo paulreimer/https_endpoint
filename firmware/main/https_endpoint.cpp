@@ -289,7 +289,7 @@ HttpsEndpoint::add_header(
   stx::string_view v
 )
 {
-  headers.insert(make_pair(std::string(k), std::string(v)));
+  headers[std::string(k)] = std::string(v);
   return true;
 }
 
@@ -299,7 +299,7 @@ HttpsEndpoint::add_query_param(
   stx::string_view v
 )
 {
-  query_params.insert(make_pair(std::string(k), std::string(v)));
+  query_params[std::string(k)] = std::string(v);
   return true;
 }
 
