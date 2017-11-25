@@ -1,9 +1,8 @@
 #pragma once
 
-#include "picojson.h"
+#include "flatbuffers_streaming_json_parser.h"
 
-#include <vector>
-#include <sstream>
+#include "picojson.h"
 
 #include "flatbuffers/idl.h"
 // read streaming JSON into dynamically built flatbuffer:
@@ -14,6 +13,9 @@
 #include "stx/string_view.hpp"
 
 #include "esp_log.h"
+
+#include <vector>
+#include <sstream>
 
 inline bool
 equality_or_wildcard(
@@ -27,16 +29,15 @@ is_a_subpath(
   const std::vector<std::string>& root_path
 );
 
-constexpr char wildcard_sym[] = "*";
-
 template<typename MessageT, typename ErrorT>
-class FlatbuffersStreamingParser
+class FlatbuffersStreamingJsonVisitor
 {
 private:
-  FlatbuffersStreamingParser(const FlatbuffersStreamingParser &);
-  FlatbuffersStreamingParser &operator=(const FlatbuffersStreamingParser &);
+  FlatbuffersStreamingJsonVisitor(const FlatbuffersStreamingJsonVisitor &);
+  FlatbuffersStreamingJsonVisitor &operator=(const FlatbuffersStreamingJsonVisitor &);
 
-  const char TAG[27] = "FlatbuffersStreamingParser";
+  // do include space for null terminating byte
+  const char TAG[32] = "FlatbuffersStreamingJsonVisitor";
 
   std::vector<std::string> root_path;
   std::function<bool(const MessageT&)> callback;
@@ -44,8 +45,7 @@ private:
   std::vector<std::string> error_path;
   std::function<bool(const ErrorT&)> errback;
 
-  flatbuffers::Parser parser;
-  bool flatbuffers_parser_ready = false;
+  FlatbuffersStreamingJsonParser& flatbuffers_parser;
 
   bool is_parse_error = false;
 
@@ -67,39 +67,14 @@ private:
   bool needs_close_object = false;
 
   // Reflection state
-  const reflection::Schema* schema;
-  const reflection::Object* reflection_table;
+  const reflection::Object* reflection_table = nullptr;
 
 public:
-  FlatbuffersStreamingParser(
-    stx::string_view text_schema,
-    stx::string_view binary_schema
+  FlatbuffersStreamingJsonVisitor(
+    FlatbuffersStreamingJsonParser& _flatbuffers_parser
   )
+  : flatbuffers_parser(_flatbuffers_parser)
   {
-    clear();
-
-    // Allow trailing commas, and optional quotes around identifiers/values
-    parser.opts.strict_json = false;
-
-    // Support additional (ignored) fields present in JSON but not in the schema
-    parser.opts.skip_unexpected_fields_in_json = true;
-
-    if (parse_flatbuffers_text_schema(text_schema))
-    {
-      // Success
-      ESP_LOGI(TAG, "Successfully parsed text flatbuffer schema buffer");
-      flatbuffers_parser_ready = true;
-    }
-
-    if (parse_flatbuffers_binary_schema(binary_schema))
-    {
-      // Success
-      ESP_LOGI(TAG, "Successfully parsed binary flatbuffer schema buffer");
-
-      // Print the namespaced-name of the (default) root object
-      reflection_table = schema->root_table();
-      ESP_LOGI(TAG, "Default root table: %s", schema->root_table()->name()->c_str());
-    }
   }
 
   void clear()
@@ -123,6 +98,9 @@ public:
     emit_json = false;
     needs_close_array = false;
     needs_close_object = false;
+
+    // Reflection state
+    reflection_table = flatbuffers_parser.get_flatbuffers_root_table();;
   }
 
   bool parse_stream(
@@ -432,7 +410,7 @@ public:
         {
           if (val_field->type()->base_type() == reflection::Obj)
           {
-            reflection_table = schema->objects()->Get(
+            reflection_table = flatbuffers_parser.get_flatbuffers_table(
               val_field->type()->index()
             );
 
@@ -450,7 +428,7 @@ public:
             if (field->type()->base_type() == reflection::Obj)
             {
               //TODO(@paulreimer): could be a union/struct? what then?
-              reflection_table = schema->objects()->Get(
+              reflection_table = flatbuffers_parser.get_flatbuffers_table(
                 field->type()->index()
               );
             }
@@ -459,7 +437,7 @@ public:
             {
               if (field->type()->element() == reflection::Obj)
               {
-                reflection_table = schema->objects()->Get(
+                reflection_table = flatbuffers_parser.get_flatbuffers_table(
                   field->type()->index()
                 );
 
@@ -478,162 +456,27 @@ public:
   }
 
   bool
-  parse_flatbuffers_text_schema(stx::string_view buf)
-  {
-    // Load flatbuffers text schema file from buffer
-    // Check for a non-zero buffer length
-    if (!buf.empty())
-    {
-      // Check for a nullptr terminated buffer
-      char eof = buf[buf.size() - 1];
-      if (eof == 0x00)
-      {
-        bool ok = parser.Parse(buf.data(), nullptr);
-        if (ok)
-        {
-          return true;
-        }
-        else {
-          ESP_LOGE(TAG, "Invalid text flatbuffer schema buffer");
-        }
-      }
-      else {
-        ESP_LOGE(TAG, "nullptr byte missing from text flatbuffer schema buffer");
-      }
-    }
-    else {
-      ESP_LOGE(TAG, "0 length text flatbuffer schema buffer found");
-    }
-
-    return false;
-  }
-
-  bool
-  parse_flatbuffers_binary_schema(stx::string_view buf)
-  {
-    // Load flatbuffers text schema file from buffer
-    // Check for a non-zero buffer length
-    if (!buf.empty())
-    {
-      // Check for a nullptr terminated buffer
-      char eof = buf[buf.size() - 1];
-      if (eof == 0x00)
-      {
-        // Verify the buffer as valid flatbuffer
-        flatbuffers::Verifier verifier(
-          reinterpret_cast<const uint8_t *>(buf.data()), buf.size());
-        if (reflection::VerifySchemaBuffer(verifier))
-        {
-          // Parse a buffer containing the binary schema
-          schema = reflection::GetSchema(buf.data());
-          if (schema != nullptr)
-          {
-            return true;
-          }
-        }
-        else {
-          ESP_LOGE(TAG, "Invalid binary flatbuffer schema buffer");
-        }
-      }
-      else {
-        ESP_LOGE(TAG, "nullptr byte missing from text flatbuffer schema buffer");
-      }
-    }
-    else {
-      ESP_LOGE(TAG, "0 length binary flatbuffer schema buffer found");
-    }
-
-    return false;
-  }
-
-  bool
   convert_json_stream_to_flatbuffer()
   {
     bool ok = false;
 
-    // Attempt to parse the JSON stream into a flatbuffer of template type
-    if (flatbuffers_parser_ready)
+    if (is_error_path)
     {
-      // Determine whether to expect to parse an Error type or a Message type
-      ok = parser.SetRootType(
-        (is_error_path)?
-        ErrorT::TableType::GetFullyQualifiedName() :
-        MessageT::TableType::GetFullyQualifiedName()
-      );
-
-      // We are set up for the root type of flatbuffer now
+      ErrorT error;
+      ok = flatbuffers_parser.parse<ErrorT>(ss.str(), error);
       if (ok)
       {
-        // Parse JSON output stream into flatbuffer
-        ok = parser.Parse(ss.str().c_str(), nullptr);
-        if (ok)
-        {
-          // Here, parser.builder_ contains a binary buffer
-          // that is the finished parsed data.
-          // Create a generatic verifier for it
-          flatbuffers::Verifier verifier(
-            parser.builder_.GetBufferPointer(),
-            parser.builder_.GetSize());
-
-          // Take the callback path
-          if (!is_error_path)
-          {
-            // Verify as valid message type
-            ok = verifier.VerifyBuffer<
-              typename MessageT::TableType>(
-                nullptr);
-            if (ok)
-            {
-              // Instantiate a C++ gen-object-api object for the message
-              MessageT message;
-              const auto flatbuf = flatbuffers::GetRoot<
-                typename MessageT::TableType>(
-                  parser.builder_.GetBufferPointer()
-              );
-
-              // Unpack the binary into the C++ object
-              flatbuf->UnPackTo(&message);
-
-              // Trigger the callback
-              ok = callback(message);
-            }
-            else {
-              ESP_LOGE(TAG, "Couldn't verify flatbuffer message type");
-            }
-          }
-          // Take the errback path
-          else {
-            // Verify as valid error type
-            ok = verifier.VerifyBuffer<typename ErrorT::TableType>(nullptr);
-            if (ok)
-            {
-              // Instantiate a C++ gen-object-api object for the error
-              ErrorT error;
-              const auto flatbuf = flatbuffers::GetRoot<
-                typename ErrorT::TableType>(
-                  parser.builder_.GetBufferPointer()
-              );
-
-              // Unpack the binary into the C++ object
-              flatbuf->UnPackTo(&error);
-
-              // Trigger the errback
-              ok = errback(error);
-            }
-            else {
-              ESP_LOGE(TAG, "Couldn't verify flatbuffer error type");
-            }
-          }
-        }
-        else {
-          ESP_LOGE(TAG,
-            "Couldn't parse JSON string '%s' into valid flatbuffer of type '%s'",
-            ss.str().c_str(), MessageT::GetFullyQualifiedName()
-          );
-        }
+        // Trigger the errback
+        ok = errback(error);
       }
-      else {
-        ESP_LOGE(TAG, "Could not set flatbuffer root type '%s'", MessageT::GetFullyQualifiedName());
+    }
+    else {
+      MessageT message;
+      ok = flatbuffers_parser.parse<MessageT>(ss.str(), message);
+      if (ok)
+      {
+        // Trigger the callback
+        ok = callback(message);
       }
     }
 
@@ -646,6 +489,7 @@ equality_or_wildcard(
   stx::string_view root,
   stx::string_view current)
 {
+  constexpr char wildcard_sym[] = "*";
   return ((root == wildcard_sym) || (root == current));
 }
 
