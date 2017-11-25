@@ -364,7 +364,7 @@ HttpsEndpoint::tls_connect()
       memset(&saved_session, 0, sizeof(mbedtls_ssl_session));
     }
 
-    ESP_LOGI(TAG, "Setting up the SSL/TLS structure...");
+    ESP_LOGI(TAG, "(0/7) Setting up the SSL/TLS structure...");
 
     mbedtls_ssl_config_init(&conf);
 
@@ -386,7 +386,7 @@ HttpsEndpoint::tls_connect()
     mbedtls_ssl_conf_authmode(&conf, authmode);
     mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
 
-    ESP_LOGI(TAG, "Loading the CA root certificate...");
+    ESP_LOGI(TAG, "(1/7) Loading the CA root certificate...");
 
     mbedtls_x509_crt_init(&cacert);
 
@@ -417,7 +417,7 @@ HttpsEndpoint::tls_connect()
       return false;
     }
 
-    ESP_LOGI(TAG, "Setting hostname for TLS session...");
+    ESP_LOGI(TAG, "(2/7) Setting hostname for TLS session...");
 
     // Hostname set here should match CN in server certificate
     ret = mbedtls_ssl_set_hostname(&ssl, host.c_str());
@@ -486,11 +486,11 @@ HttpsEndpoint::tls_connect()
     return false;
   }
 
-  ESP_LOGI(TAG, "Connected.");
+  ESP_LOGI(TAG, "(3/7) TCP/IP Connected.");
 
   mbedtls_ssl_set_bio(&ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv, nullptr);
 
-  ESP_LOGI(TAG, "Performing the SSL/TLS handshake...");
+  ESP_LOGI(TAG, "(4/7) Performing the SSL/TLS handshake...");
 
   while ((ret = mbedtls_ssl_handshake(&ssl)) != 0)
   {
@@ -504,7 +504,7 @@ HttpsEndpoint::tls_connect()
     }
   }
 
-  ESP_LOGI(TAG, "Storing established session ticket for reuse...");
+  ESP_LOGI(TAG, "(5/7) Storing established session ticket for reuse...");
 
   if ((ret = mbedtls_ssl_get_session(&ssl, &saved_session)) != 0)
   {
@@ -515,7 +515,7 @@ HttpsEndpoint::tls_connect()
     return false;
   }
 
-  ESP_LOGI(TAG, "Verifying peer X.509 certificate...");
+  ESP_LOGI(TAG, "(6/7) Verifying peer X.509 certificate...");
 
   if ((flags = mbedtls_ssl_get_verify_result(&ssl)) != 0)
   {
@@ -529,7 +529,7 @@ HttpsEndpoint::tls_connect()
     ESP_LOGE(TAG, "Failed verification info: %s", buf);
   }
   else {
-    ESP_LOGI(TAG, "Certificate verified.");
+    ESP_LOGI(TAG, "(7/7) Certificate verified.");
     connected = true;
   }
 
