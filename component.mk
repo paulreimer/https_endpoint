@@ -3,10 +3,15 @@
 #
 
 COMPONENT_ADD_INCLUDEDIRS := \
-	picojson
+	flatbuffers/include \
+	picojson \
+	.
 
 COMPONENT_SRCDIRS := \
-	picojson
+	flatbuffers/src \
+	picojson \
+	.
 
 CFLAGS += \
+	-DFLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION \
 	-DPICOJSON_USE_INT64=1
