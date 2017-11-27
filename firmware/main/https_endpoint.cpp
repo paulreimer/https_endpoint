@@ -210,7 +210,7 @@ HttpsEndpoint::make_request(
   }
   else {
     ESP_LOGW(TAG,
-      "Could not find JSON body in HTTP response, read %d header bytes",
+      "Could not find body in HTTP response, read %d header bytes",
       header_size
     );
   }
