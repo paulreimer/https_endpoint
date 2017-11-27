@@ -3,7 +3,6 @@
 #include "https_response_streambuf.h"
 
 #include <functional>
-#include <iostream>
 #include <map>
 #include <sstream>
 
