@@ -14,8 +14,10 @@
 
 #include "esp_log.h"
 
-#include <vector>
+#include <algorithm>
 #include <sstream>
+#include <string>
+#include <vector>
 
 inline bool
 equality_or_wildcard(

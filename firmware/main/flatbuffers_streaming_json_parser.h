@@ -5,6 +5,8 @@
 
 #include "stx/string_view.hpp"
 
+#include <string>
+
 class FlatbuffersStreamingJsonParser
 {
 public:
