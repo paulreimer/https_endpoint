@@ -5,6 +5,8 @@
 
 #include "stx/string_view.hpp"
 
+#include "esp_log.h"
+
 #include <string>
 
 class FlatbuffersStreamingJsonParser
