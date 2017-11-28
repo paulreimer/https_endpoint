@@ -6,12 +6,12 @@ COMPONENT_ADD_INCLUDEDIRS := \
 	cpp17_headers/include \
 	flatbuffers/include \
 	picojson \
-	.
+	src
 
 COMPONENT_SRCDIRS := \
 	flatbuffers/src \
 	picojson \
-	.
+	src
 
 CXXFLAGS += \
 	-DFLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION \
