@@ -115,7 +115,7 @@ public:
   }
 
   bool parse_stream(
-    const std::istream& resp,
+    std::istream& resp,
     const std::vector<std::string>& _root_path={},
     std::function<bool(const MessageT&)> _callback=nullptr,
     const std::vector<std::string>& _error_path={},
