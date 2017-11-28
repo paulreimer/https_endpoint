@@ -13,8 +13,6 @@
 
 #include <string.h>
 
-constexpr char HttpsEndpoint::TAG[];
-
 HttpsEndpoint::HttpsEndpoint(
   stx::string_view _host,
   const unsigned short _port,
@@ -23,6 +21,7 @@ HttpsEndpoint::HttpsEndpoint(
 : host(_host)
 , port(_port)
 , cacert_pem(_cacert_pem)
+, TAG(host.data())
 , saved_session{0}
 {
   add_header("Host", host);
@@ -71,8 +70,8 @@ std::string
 HttpsEndpoint::generate_request(
   stx::string_view method,
   stx::string_view path,
-  const std::map<stx::string_view, stx::string_view>& extra_query_params,
-  const std::map<stx::string_view, stx::string_view>& extra_headers,
+  const HttpsEndpoint::QueryMapView& extra_query_params,
+  const HttpsEndpoint::HeaderMapView& extra_headers,
   stx::string_view req_body
 )
 {
@@ -145,18 +144,17 @@ bool
 HttpsEndpoint::make_request(
   stx::string_view method,
   stx::string_view path,
-  const std::map<stx::string_view, stx::string_view>& extra_query_params,
-  const std::map<stx::string_view, stx::string_view>& extra_headers,
+  const HttpsEndpoint::QueryMapView& extra_query_params,
+  const HttpsEndpoint::HeaderMapView& extra_headers,
   stx::string_view req_body,
-  std::function<bool(std::istream&)> process_resp_body
+  ResponseCallback process_resp_body
 )
 {
   // Make sure we are connected, re-use an existing session if possible/required
   ensure_connected();
 
   // Write the request
-  ESP_LOGI(TAG, "Writing HTTP request %.*s %.*s",
-    host.size(), host.data(),
+  ESP_LOGI(TAG, "Writing HTTP request %.*s",
     path.size(), path.data()
   );
 
@@ -191,7 +189,15 @@ HttpsEndpoint::make_request(
   HttpsResponseStreambuf resp_buf(ssl, 512);
   std::istream resp(&resp_buf);
 
-  // Search for delimiter marking end of HTTP headers
+  // Extract status line for the response code
+  std::string protocol, status;
+  ssize_t code = -1;
+  resp >> protocol >> code >> status;
+  ESP_LOGI(TAG, "Received %s response %d %s",
+    protocol.c_str(), code, status.c_str()
+  );
+
+  // Skip through the headers until delimiter marking end of HTTP headers
   constexpr char delim[4] = { '\r', '\n', '\r', '\n' };
   bool body_was_found = false;
   size_t delim_pos = 0;
@@ -214,7 +220,7 @@ HttpsEndpoint::make_request(
   {
     if (process_resp_body)
     {
-      ok = process_resp_body(resp);
+      ok = process_resp_body(code, resp);
     }
   }
   else {
@@ -235,9 +241,9 @@ bool
 HttpsEndpoint::make_request(
   stx::string_view method,
   stx::string_view path,
-  const std::map<stx::string_view, stx::string_view>& extra_headers,
+  const HttpsEndpoint::HeaderMapView& extra_headers,
   stx::string_view req_body,
-  std::function<bool(std::istream&)> process_resp_body
+  ResponseCallback process_resp_body
 )
 {
   return make_request(
@@ -253,7 +259,7 @@ HttpsEndpoint::make_request(
   stx::string_view method,
   stx::string_view path,
   stx::string_view req_body,
-  std::function<bool(std::istream&)> process_resp_body
+  ResponseCallback process_resp_body
 )
 {
   return make_request(method, path, {}, {}, req_body, process_resp_body);
@@ -264,9 +270,9 @@ bool
 HttpsEndpoint::make_request(
   stx::string_view method,
   stx::string_view path,
-  const std::map<stx::string_view, stx::string_view>& extra_query_params,
-  const std::map<stx::string_view, stx::string_view>& extra_headers,
-  std::function<bool(std::istream&)> process_resp_body
+  const HttpsEndpoint::QueryMapView& extra_query_params,
+  const HttpsEndpoint::HeaderMapView& extra_headers,
+  ResponseCallback process_resp_body
 )
 {
   return make_request(method, path, {}, extra_headers, "", process_resp_body);
@@ -276,8 +282,8 @@ bool
 HttpsEndpoint::make_request(
   stx::string_view method,
   stx::string_view path,
-  const std::map<stx::string_view, stx::string_view>& extra_headers,
-  std::function<bool(std::istream&)> process_resp_body
+  const HttpsEndpoint::HeaderMapView& extra_headers,
+  ResponseCallback process_resp_body
 )
 {
   return make_request(method, path, {}, extra_headers, "", process_resp_body);
@@ -287,7 +293,7 @@ bool
 HttpsEndpoint::make_request(
   stx::string_view method,
   stx::string_view path,
-  std::function<bool(std::istream&)> process_resp_body
+  ResponseCallback process_resp_body
 )
 {
   return make_request(method, path, {}, {}, "", process_resp_body);

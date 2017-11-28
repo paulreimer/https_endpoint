@@ -48,6 +48,14 @@ public:
 
   ~HttpsEndpoint();
 
+  typedef std::map<stx::string_view, stx::string_view> QueryMapView;
+  typedef std::map<stx::string_view, stx::string_view> HeaderMapView;
+
+  typedef std::map<std::string, std::string> QueryMap;
+  typedef std::map<std::string, std::string> HeaderMap;
+
+  typedef std::function<bool(ssize_t, std::istream&)> ResponseCallback;
+
   bool ensure_connected();
 
   bool add_query_param(stx::string_view k, stx::string_view v);
@@ -56,70 +64,70 @@ public:
   bool add_header(stx::string_view k, stx::string_view v);
   bool has_header(stx::string_view k);
 
-  std::string generate_request(
-    stx::string_view method,
-    stx::string_view path,
-    const std::map<stx::string_view, stx::string_view>& extra_query_params,
-    const std::map<stx::string_view, stx::string_view>& extra_headers,
-    stx::string_view req_body=""
-  );
-
   // Main request call, others are shortcuts to this
   bool make_request(
     stx::string_view method,
     stx::string_view path,
-    const std::map<stx::string_view, stx::string_view>& extra_query_params,
-    const std::map<stx::string_view, stx::string_view>& extra_headers,
+    const QueryMapView& extra_query_params,
+    const HeaderMapView& extra_headers,
     stx::string_view req_body="",
-    std::function<bool(std::istream&)> process_resp_body=nullptr
+    ResponseCallback process_resp_body=nullptr
   );
 
   // Generic method, optional headers/query
   bool make_request(
     stx::string_view method,
     stx::string_view path,
-    const std::map<stx::string_view, stx::string_view>& extra_headers,
+    const HeaderMapView& extra_headers,
     stx::string_view req_body="",
-    std::function<bool(std::istream&)> process_resp_body=nullptr
+    ResponseCallback process_resp_body=nullptr
   );
 
   bool make_request(
     stx::string_view method,
     stx::string_view path,
     stx::string_view req_body="",
-    std::function<bool(std::istream&)> process_resp_body=nullptr
+    ResponseCallback process_resp_body=nullptr
   );
 
   // Optional request body
   bool make_request(
     stx::string_view method,
     stx::string_view path,
-    const std::map<stx::string_view, stx::string_view>& extra_query_params,
-    const std::map<stx::string_view, stx::string_view>& extra_headers,
-    std::function<bool(std::istream&)> process_resp_body=nullptr
+    const QueryMapView& extra_query_params,
+    const HeaderMapView& extra_headers,
+    ResponseCallback process_resp_body=nullptr
   );
   bool make_request(
     stx::string_view method,
     stx::string_view path,
-    const std::map<stx::string_view, stx::string_view>& extra_headers,
-    std::function<bool(std::istream&)> process_resp_body=nullptr
+    const HeaderMapView& extra_headers,
+    ResponseCallback process_resp_body=nullptr
   );
 
   bool make_request(
     stx::string_view method,
     stx::string_view path,
-    std::function<bool(std::istream&)> process_resp_body=nullptr
+    ResponseCallback process_resp_body=nullptr
   );
 
 
 protected:
-  static constexpr char TAG[] = "HttpsEndpoint";
+  std::string generate_request(
+    stx::string_view method,
+    stx::string_view path,
+    const QueryMapView& extra_query_params,
+    const HeaderMapView& extra_headers,
+    stx::string_view req_body=""
+  );
 
   int authmode = MBEDTLS_SSL_VERIFY_REQUIRED;
 
   std::string host;
   unsigned short port = 443;
   std::string cacert_pem;
+
+  const char* TAG = nullptr;
 
   std::map<std::string, std::string> headers;
   std::map<std::string, std::string> query_params;
@@ -145,5 +153,5 @@ private:
   bool tls_cleanup();
   bool tls_connect();
 
-  static bool tls_print_error(int ret);
+  bool tls_print_error(int ret);
 };
