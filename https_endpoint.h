@@ -71,7 +71,7 @@ public:
     const std::map<stx::string_view, stx::string_view>& extra_query_params,
     const std::map<stx::string_view, stx::string_view>& extra_headers,
     stx::string_view req_body="",
-    std::function<bool(const std::istream&)> process_resp_body=nullptr
+    std::function<bool(std::istream&)> process_resp_body=nullptr
   );
 
   // Generic method, optional headers/query
@@ -80,14 +80,14 @@ public:
     stx::string_view path,
     const std::map<stx::string_view, stx::string_view>& extra_headers,
     stx::string_view req_body="",
-    std::function<bool(const std::istream&)> process_resp_body=nullptr
+    std::function<bool(std::istream&)> process_resp_body=nullptr
   );
 
   bool make_request(
     stx::string_view method,
     stx::string_view path,
     stx::string_view req_body="",
-    std::function<bool(const std::istream&)> process_resp_body=nullptr
+    std::function<bool(std::istream&)> process_resp_body=nullptr
   );
 
   // Optional request body
@@ -96,19 +96,19 @@ public:
     stx::string_view path,
     const std::map<stx::string_view, stx::string_view>& extra_query_params,
     const std::map<stx::string_view, stx::string_view>& extra_headers,
-    std::function<bool(const std::istream&)> process_resp_body=nullptr
+    std::function<bool(std::istream&)> process_resp_body=nullptr
   );
   bool make_request(
     stx::string_view method,
     stx::string_view path,
     const std::map<stx::string_view, stx::string_view>& extra_headers,
-    std::function<bool(const std::istream&)> process_resp_body=nullptr
+    std::function<bool(std::istream&)> process_resp_body=nullptr
   );
 
   bool make_request(
     stx::string_view method,
     stx::string_view path,
-    std::function<bool(const std::istream&)> process_resp_body=nullptr
+    std::function<bool(std::istream&)> process_resp_body=nullptr
   );
 
 
