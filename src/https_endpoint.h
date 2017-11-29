@@ -56,7 +56,7 @@ public:
 
   typedef std::function<bool(ssize_t, std::istream&)> ResponseCallback;
 
-  bool ensure_connected();
+  virtual bool ensure_connected();
 
   bool add_query_param(stx::string_view k, stx::string_view v);
   bool has_query_param(stx::string_view k);
