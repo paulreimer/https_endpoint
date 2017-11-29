@@ -8,7 +8,11 @@ COMPONENT_ADD_INCLUDEDIRS := \
 	picojson \
 	src
 
+COMPONENT_PRIV_INCLUDEDIRS := \
+	libb64/include
+
 COMPONENT_SRCDIRS := \
+	libb64/src \
 	flatbuffers/src \
 	src
 
