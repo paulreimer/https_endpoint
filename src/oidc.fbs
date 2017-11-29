@@ -1,0 +1,18 @@
+namespace OIDC;
+
+table Token {
+  access_token:string;
+  token_type:string;
+  grant_type:string;
+  refresh_token:string;
+  expires_in:int;
+  id_token:string;
+}
+
+table Error {
+  code:int;
+  message:string;
+  status:string;
+}
+
+root_type Token;
