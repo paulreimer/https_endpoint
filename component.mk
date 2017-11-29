@@ -24,6 +24,11 @@ COMPONENT_EMBED_TXTFILES := \
 	src/oidc.fbs \
 	src/oidc.bfbs
 
+# Depends on oidc.fbs
+src/id_token_protected_endpoint.o: \
+	$(COMPONENT_PATH)/src/oidc_generated.h \
+	$(COMPONENT_PATH)/src/oidc.bfbs
+
 # Output these files to the component path
 $(COMPONENT_PATH)/src/%_generated.h: $(COMPONENT_PATH)/src/%.fbs
 	flatc --cpp -o $(COMPONENT_PATH)/src \
