@@ -10,7 +10,6 @@ COMPONENT_ADD_INCLUDEDIRS := \
 
 COMPONENT_SRCDIRS := \
 	flatbuffers/src \
-	picojson \
 	src
 
 CXXFLAGS += \
