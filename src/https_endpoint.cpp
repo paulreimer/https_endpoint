@@ -300,6 +300,15 @@ HttpsEndpoint::make_request(
 }
 
 bool
+HttpsEndpoint::make_request(
+  stx::string_view path,
+  ResponseCallback process_resp_body
+)
+{
+  return make_request("GET", path, {}, {}, "", process_resp_body);
+}
+
+bool
 HttpsEndpoint::add_query_param(stx::string_view k, stx::string_view v)
 {
   query_params[std::string(k)] = std::string(v);

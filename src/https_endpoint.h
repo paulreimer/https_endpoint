@@ -74,7 +74,8 @@ public:
     ResponseCallback process_resp_body=nullptr
   );
 
-  // Generic method, optional headers/query
+  // Convenient accessors to make_request():
+  // (no query string)
   bool make_request(
     stx::string_view method,
     stx::string_view path,
@@ -83,6 +84,7 @@ public:
     ResponseCallback process_resp_body=nullptr
   );
 
+  // (no query string and no headers)
   bool make_request(
     stx::string_view method,
     stx::string_view path,
@@ -90,7 +92,7 @@ public:
     ResponseCallback process_resp_body=nullptr
   );
 
-  // Optional request body
+  // (no request body)
   bool make_request(
     stx::string_view method,
     stx::string_view path,
@@ -98,6 +100,8 @@ public:
     const HeaderMapView& extra_headers,
     ResponseCallback process_resp_body=nullptr
   );
+
+  // (no query string and no request body)
   bool make_request(
     stx::string_view method,
     stx::string_view path,
@@ -105,12 +109,18 @@ public:
     ResponseCallback process_resp_body=nullptr
   );
 
+  // (no query string, no request body, and no headers)
   bool make_request(
     stx::string_view method,
     stx::string_view path,
     ResponseCallback process_resp_body=nullptr
   );
 
+  // (GET-only, no query string, no request body, and no headers)
+  bool make_request(
+    stx::string_view path,
+    ResponseCallback process_resp_body=nullptr
+  );
 
 protected:
   std::string generate_request(
