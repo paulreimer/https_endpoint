@@ -54,7 +54,6 @@ public:
   HttpsEndpoint id_token_endpoint;
 
 protected:
-
   std::string refresh_token;
   std::string id_token;
 
