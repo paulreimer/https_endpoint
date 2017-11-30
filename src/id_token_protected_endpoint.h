@@ -41,6 +41,9 @@ public:
   // Fetch a new token (if needed) then Call the base class implementation
   virtual bool ensure_connected();
 
+  // Manually update the refresh token
+  bool set_refresh_token(const stx::string_view _refresh_token);
+
   // Return a new id token and optionally update the provided refresh token
   bool refresh_id_token(bool update_refresh_token=true);
 
@@ -48,8 +51,9 @@ public:
   virtual stx::string_view get_id_token();
   virtual bool set_id_token(const stx::string_view id_token);
 
-protected:
   HttpsEndpoint id_token_endpoint;
+
+protected:
 
   std::string refresh_token;
   std::string id_token;

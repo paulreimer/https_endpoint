@@ -57,6 +57,15 @@ IdTokenProtectedEndpoint::ensure_connected()
 }
 
 bool
+IdTokenProtectedEndpoint::set_refresh_token(stx::string_view _refresh_token)
+{
+  printf("refresh_token.size() = %d\n", refresh_token.size());
+  refresh_token.assign(_refresh_token.data(), _refresh_token.size());
+  printf("refresh_token.size() = %d\n", refresh_token.size());
+  return true;
+}
+
+bool
 IdTokenProtectedEndpoint::has_id_token()
 {
   return has_header("Authorization");
