@@ -184,3 +184,55 @@ TEST_CASE("Relative URI with query string and fragment", "[UriParser]" )
   CHECK(uri.query == "v=1");
   CHECK(uri.fragment == "frag");
 }
+
+TEST_CASE("No user and @ symbol in query", "[UriParser]" )
+{
+  auto uri = UriParser("https://www.example.org/foo/bar?user=test@example.org");
+  CHECK(uri.scheme == "https");
+  CHECK(uri.user.empty());
+  CHECK(uri.password.empty());
+  CHECK(uri.host == "www.example.org");
+  CHECK(uri.port == -1);
+  CHECK(uri.path == "/foo/bar");
+  CHECK(uri.query == "user=test@example.org");
+  CHECK(uri.fragment.empty());
+}
+
+TEST_CASE("No user and @ symbol in path", "[UriParser]" )
+{
+  auto uri = UriParser("https://www.example.org/a@b?user=test@example.org");
+  CHECK(uri.scheme == "https");
+  CHECK(uri.user.empty());
+  CHECK(uri.password.empty());
+  CHECK(uri.host == "www.example.org");
+  CHECK(uri.port == -1);
+  CHECK(uri.path == "/a@b");
+  CHECK(uri.query == "user=test@example.org");
+  CHECK(uri.fragment.empty());
+}
+
+TEST_CASE("No port and : symbol in query", "[UriParser]" )
+{
+  auto uri = UriParser("https://www.example.org/foo/bar?user=1:2");
+  CHECK(uri.scheme == "https");
+  CHECK(uri.user.empty());
+  CHECK(uri.password.empty());
+  CHECK(uri.host == "www.example.org");
+  CHECK(uri.port == -1);
+  CHECK(uri.path == "/foo/bar");
+  CHECK(uri.query == "user=1:2");
+  CHECK(uri.fragment.empty());
+}
+
+TEST_CASE("No port and : symbol in path", "[UriParser]" )
+{
+  auto uri = UriParser("https://www.example.org/a:b?user=1:2");
+  CHECK(uri.scheme == "https");
+  CHECK(uri.user.empty());
+  CHECK(uri.password.empty());
+  CHECK(uri.host == "www.example.org");
+  CHECK(uri.port == -1);
+  CHECK(uri.path == "/a:b");
+  CHECK(uri.query == "user=1:2");
+  CHECK(uri.fragment.empty());
+}

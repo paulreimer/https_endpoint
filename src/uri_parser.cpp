@@ -28,29 +28,6 @@ UriParser::UriParser(stx::string_view unparsed_uri)
     unparsed_uri = unparsed_uri.substr(delim_pos + delim.size());
   }
 
-  // Extract user:password
-  delim = "@";
-  delim_pos = unparsed_uri.find(delim);
-  auto user_found = (delim_pos != std::string::npos);
-  if (user_found)
-  {
-    // Assume only user, at first
-    user = unparsed_uri.substr(0, delim_pos);
-    unparsed_uri = unparsed_uri.substr(delim_pos + delim.size());
-
-    // Check for password
-    delim = ":";
-    delim_pos = user.find(delim);
-    auto password_found = (delim_pos != std::string::npos);
-    if (password_found)
-    {
-      // Set the password first
-      password = user.substr(delim_pos + delim.size());
-      // Remove the ':password' part from the user
-      user = user.substr(0, delim_pos);
-    }
-  }
-
   // Extract host:port
   delim = "/";
   delim_pos = unparsed_uri.find(delim);
@@ -65,6 +42,31 @@ UriParser::UriParser(stx::string_view unparsed_uri)
   else {
     // If there is no '/', then consider what we have to be the host
     host = unparsed_uri;
+  }
+
+  // Extract user:password
+  delim = "@";
+  delim_pos = host.find(delim);
+  auto user_found = (delim_pos != std::string::npos);
+  if (user_found)
+  {
+    // Assume only user, at first
+    user = host.substr(0, delim_pos);
+
+    // Remove the 'user:password@' part from the host
+    host = host.substr(delim_pos + delim.size());
+
+    // Check for password
+    delim = ":";
+    delim_pos = user.find(delim);
+    auto password_found = (delim_pos != std::string::npos);
+    if (password_found)
+    {
+      // Set the password first
+      password = user.substr(delim_pos + delim.size());
+      // Remove the ':password' part from the user
+      user = user.substr(0, delim_pos);
+    }
   }
 
   // Check for ':port' in host
