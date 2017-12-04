@@ -12,6 +12,8 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/reflection.h"
 
+#undef STRUCT_END
+
 #include "stx/string_view.hpp"
 
 #include "esp_log.h"
