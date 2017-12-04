@@ -82,7 +82,7 @@ UriParser::UriParser(stx::string_view unparsed_uri)
     port = 0;
     for (auto i=0; i<port_str.size(); ++i)
     {
-      auto num = port_str.at(i) - '0';
+      auto num = port_str[i] - '0';
       port = (port*10) + num;
     }
 
