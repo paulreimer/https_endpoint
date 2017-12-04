@@ -18,26 +18,10 @@ HttpsEndpoint::HttpsEndpoint(
   const unsigned short _port,
   stx::string_view _cacert_pem
 )
-: host(_host)
-, port(_port)
-, cacert_pem(_cacert_pem)
-, TAG(host.data())
-, saved_session{0}
+: TAG("")
 {
-  add_header("Host", host);
   add_header("User-Agent", "esp-idf/1.0 esp32");
-
-  if (!initialized)
-  {
-    // mbedtls library init
-    initialized = tls_init();
-
-    if (!initialized)
-    {
-      ESP_LOGE(TAG, "tls_init failed");
-      tls_cleanup();
-    }
-  }
+  initialize(_host, _port, _cacert_pem);
 }
 
 HttpsEndpoint::HttpsEndpoint(
@@ -50,6 +34,76 @@ HttpsEndpoint::HttpsEndpoint(
 HttpsEndpoint::~HttpsEndpoint()
 {
   tls_cleanup();
+}
+
+bool
+HttpsEndpoint::initialize(
+  stx::string_view _host,
+  const unsigned short _port,
+  stx::string_view _cacert_pem
+)
+{
+  // Initialize the generic members (not connection-specific)
+  if (!initialized)
+  {
+    // mbedtls library init
+    initialized = tls_init();
+
+    if (!initialized)
+    {
+      ESP_LOGE(TAG, "tls_init failed");
+      tls_cleanup();
+      return false;
+    }
+  }
+
+  bool host_changed = (
+    (_host != host) ||
+    (_port != port) ||
+    (_cacert_pem != cacert_pem)
+  );
+
+  if (host_changed)
+  {
+    // Disconnect if already connected and new connection parameters specified
+    if (connected)
+    {
+      tls_cleanup();
+      connected = false;
+    }
+
+    // Update member variables for desired connection host/port/cacert
+    host.assign(_host.data(), _host.size());
+    port = _port;
+    cacert_pem.assign(_cacert_pem.data(), _cacert_pem.size());
+
+    // Set required HTTP headers
+    add_header("Host", _host);
+
+    // Update logging message prefix
+    TAG = host.data();
+  }
+
+  return initialized;
+}
+
+bool
+HttpsEndpoint::initialize(
+  stx::string_view _host,
+  stx::string_view _cacert_pem
+)
+{
+  return initialize(_host, 443, _cacert_pem);
+}
+
+bool
+HttpsEndpoint::initialize(
+  stx::string_view _host,
+  const unsigned short _port
+)
+{
+  // Use existing cacert_pem
+  return initialize(_host, _port, cacert_pem);
 }
 
 bool
@@ -463,6 +517,7 @@ HttpsEndpoint::tls_connect()
       ret = mbedtls_ssl_session_reset(&ssl);
       if (ret == 0)
       {
+        ESP_LOGI(TAG, "Re-use previous session");
         ret = mbedtls_ssl_set_session(&ssl, &saved_session);
         if (ret != 0)
         {
@@ -569,4 +624,3 @@ HttpsEndpoint::tls_print_error(int ret)
 
   return true;
 }
-

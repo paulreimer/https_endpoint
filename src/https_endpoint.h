@@ -56,7 +56,25 @@ public:
 
   typedef std::function<bool(ssize_t, std::istream&)> ResponseCallback;
 
+  // Virtual methods
+  virtual bool initialize(
+    stx::string_view _host,
+    const unsigned short _port,
+    stx::string_view _cacert_pem
+  );
+
   virtual bool ensure_connected();
+
+  // Convenience method
+  bool initialize(
+    stx::string_view _host,
+    stx::string_view _cacert_pem
+  );
+
+  bool initialize(
+    stx::string_view _host,
+    const unsigned short _port=443
+  );
 
   bool add_query_param(stx::string_view k, stx::string_view v);
   bool has_query_param(stx::string_view k);
