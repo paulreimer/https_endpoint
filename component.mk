@@ -4,6 +4,7 @@
 
 COMPONENT_ADD_INCLUDEDIRS := \
 	cpp17_headers/include \
+	delegate \
 	flatbuffers/include \
 	picojson \
 	src
