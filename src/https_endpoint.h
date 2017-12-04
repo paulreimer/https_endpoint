@@ -11,7 +11,8 @@
 
 #include "https_response_streambuf.h"
 
-#include <functional>
+#include "delegate.hpp"
+
 #include <map>
 #include <sstream>
 
@@ -54,7 +55,7 @@ public:
   typedef std::map<std::string, std::string> QueryMap;
   typedef std::map<std::string, std::string> HeaderMap;
 
-  typedef std::function<bool(ssize_t, std::istream&)> ResponseCallback;
+  typedef delegate<bool(ssize_t, std::istream&)> ResponseCallback;
 
   // Virtual methods
   virtual bool initialize(
@@ -160,7 +161,7 @@ protected:
   std::map<std::string, std::string> headers;
   std::map<std::string, std::string> query_params;
 
-  std::function<bool(HttpsResponseStreambuf&)> process_body;
+  delegate<bool(HttpsResponseStreambuf&)> process_body;
 
 private:
   // Endpoint specific

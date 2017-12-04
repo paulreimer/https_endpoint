@@ -21,9 +21,10 @@
 
 #include "stx/string_view.hpp"
 
+#include "delegate.hpp"
+
 #include "esp_log.h"
 
-#include <algorithm>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -51,10 +52,10 @@ private:
   const char TAG[32] = "FlatbuffersStreamingJsonVisitor";
 
   std::vector<std::string> root_path;
-  std::function<bool(const MessageT&)> callback;
+  delegate<bool(const MessageT&)> callback;
 
   std::vector<std::string> error_path;
-  std::function<bool(const ErrorT&)> errback;
+  delegate<bool(const ErrorT&)> errback;
 
   FlatbuffersStreamingJsonParser& flatbuffers_parser;
 
@@ -117,9 +118,9 @@ public:
   bool parse_stream(
     std::istream& resp,
     const std::vector<std::string>& _root_path={},
-    std::function<bool(const MessageT&)> _callback=nullptr,
+    delegate<bool(const MessageT&)> _callback=nullptr,
     const std::vector<std::string>& _error_path={},
-    std::function<bool(const ErrorT&)> _errback=nullptr
+    delegate<bool(const ErrorT&)> _errback=nullptr
   )
   {
     std::string err;
