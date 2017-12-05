@@ -474,21 +474,19 @@ public:
 
     if (is_error_path)
     {
-      ErrorT error;
-      ok = flatbuffers_parser.parse<ErrorT>(ss.str(), error);
-      if (ok)
+      auto error = flatbuffers_parser.parse<ErrorT>(ss.str());
+      if (error)
       {
         // Trigger the errback
-        ok = errback(error);
+        ok = errback(*error);
       }
     }
     else {
-      MessageT message;
-      ok = flatbuffers_parser.parse<MessageT>(ss.str(), message);
-      if (ok)
+      auto message = flatbuffers_parser.parse<MessageT>(ss.str());;
+      if (message)
       {
         // Trigger the callback
-        ok = callback(message);
+        ok = callback(*message);
       }
     }
 

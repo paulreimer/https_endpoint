@@ -12,8 +12,11 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/reflection.h"
 
+#include "flatbuffers_parser.h"
+
 #undef STRUCT_END
 
+#include "stx/optional.hpp"
 #include "stx/string_view.hpp"
 
 #include "esp_log.h"
@@ -39,11 +42,8 @@ public:
   const reflection::Object* get_flatbuffers_root_table() const;
 
   template<typename ObjT>
-  bool
-  parse(
-    const std::string& json,
-    ObjT& obj
-  )
+  stx::optional<ObjT>
+  parse(const std::string& json)
   {
     bool ok = is_ready();
     // Attempt to parse the JSON stream into a flatbuffer of template type
@@ -61,32 +61,15 @@ public:
 
         if (ok)
         {
-          // Here, flatbuffers_parser.builder_ contains a binary buffer
-          // that is the finished parsed data.
-          // Create a generatic verifier for it
-          flatbuffers::Verifier verifier(
-            flatbuffers_parser.builder_.GetBufferPointer(),
-            flatbuffers_parser.builder_.GetSize());
-
-          // Verify as valid message type
-          ok = verifier.VerifyBuffer<typename ObjT::TableType>(nullptr);
-          if (ok)
-          {
-            // Instantiate a C++ gen-object-api object for the message
-            const auto flatbuf = flatbuffers::GetRoot<typename ObjT::TableType>(
-              flatbuffers_parser.builder_.GetBufferPointer()
-            );
-
-            // Unpack the binary into the C++ object
-            flatbuf->UnPackTo(&obj);
-            return true;
-          }
-          else {
-            ESP_LOGE(TAG,
-              "Couldn't verify flatbuffer of type '%s'",
-              root_type
-            );
-          }
+          // Parse if possible, return whether it was successful
+          return FlatbuffersParser::parse<ObjT>(
+            stx::string_view(
+              reinterpret_cast<const char*>(
+                flatbuffers_parser.builder_.GetBufferPointer()
+              ),
+              flatbuffers_parser.builder_.GetSize()
+            )
+          );
         }
         else {
           ESP_LOGE(TAG,
@@ -107,7 +90,7 @@ public:
       ESP_LOGE(TAG, "Parser not ready");
     }
 
-    return false;
+    return stx::nullopt;
   }
 
 private:
