@@ -24,21 +24,22 @@ TEST_CASE("Null URI", "[UriParser]" )
   CHECK(uri.path.empty());
   CHECK(uri.query.empty());
   CHECK(uri.fragment.empty());
+  CHECK(uri.request_uri.empty());
 }
 
 TEST_CASE("Path-only URI", "[UriParser]" )
 {
-  std::string path = "/foo/bar";
-  auto uri = UriParser(path);
+  auto uri = UriParser("/foo/bar");
   CHECK(uri.host.empty());
   CHECK(uri.scheme.empty());
   CHECK(uri.user.empty());
   CHECK(uri.password.empty());
   CHECK(uri.host.empty());
   CHECK(uri.port == -1);
-  CHECK(uri.path == path);
+  CHECK(uri.path == "/foo/bar");
   CHECK(uri.query.empty());
   CHECK(uri.fragment.empty());
+  CHECK(uri.request_uri == "/foo/bar");
 }
 
 TEST_CASE("Typical URI", "[UriParser]" )
@@ -52,6 +53,7 @@ TEST_CASE("Typical URI", "[UriParser]" )
   CHECK(uri.path == "/foo/bar");
   CHECK(uri.query.empty());
   CHECK(uri.fragment.empty());
+  CHECK(uri.request_uri == "/foo/bar");
 }
 
 TEST_CASE("HTTP URI", "[UriParser]" )
@@ -65,6 +67,7 @@ TEST_CASE("HTTP URI", "[UriParser]" )
   CHECK(uri.path == "/foo/bar");
   CHECK(uri.query.empty());
   CHECK(uri.fragment.empty());
+  CHECK(uri.request_uri == "/foo/bar");
 }
 
 TEST_CASE("URI with missing scheme", "[UriParser]" )
@@ -79,6 +82,7 @@ TEST_CASE("URI with missing scheme", "[UriParser]" )
   CHECK(uri.path == "/foo/bar");
   CHECK(uri.query.empty());
   CHECK(uri.fragment.empty());
+  CHECK(uri.request_uri == "/foo/bar");
 }
 
 TEST_CASE("URI with non-standard port", "[UriParser]" )
@@ -92,6 +96,7 @@ TEST_CASE("URI with non-standard port", "[UriParser]" )
   CHECK(uri.path == "/foo/bar");
   CHECK(uri.query.empty());
   CHECK(uri.fragment.empty());
+  CHECK(uri.request_uri == "/foo/bar");
 }
 
 TEST_CASE("URI with no scheme and non-standard port", "[UriParser]" )
@@ -105,6 +110,7 @@ TEST_CASE("URI with no scheme and non-standard port", "[UriParser]" )
   CHECK(uri.path == "/foo/bar");
   CHECK(uri.query.empty());
   CHECK(uri.fragment.empty());
+  CHECK(uri.request_uri == "/foo/bar");
 }
 
 TEST_CASE("URI with no path", "[UriParser]" )
@@ -118,6 +124,7 @@ TEST_CASE("URI with no path", "[UriParser]" )
   CHECK(uri.path.empty());
   CHECK(uri.query.empty());
   CHECK(uri.fragment.empty());
+  CHECK(uri.request_uri.empty());
 }
 
 TEST_CASE("URI with query string", "[UriParser]" )
@@ -131,6 +138,7 @@ TEST_CASE("URI with query string", "[UriParser]" )
   CHECK(uri.path == "/foo/bar");
   CHECK(uri.query == "v=1");
   CHECK(uri.fragment.empty());
+  CHECK(uri.request_uri == "/foo/bar?v=1");
 }
 
 TEST_CASE("URI with user", "[UriParser]" )
@@ -144,6 +152,7 @@ TEST_CASE("URI with user", "[UriParser]" )
   CHECK(uri.path == "/foo/bar");
   CHECK(uri.query == "v=1");
   CHECK(uri.fragment.empty());
+  CHECK(uri.request_uri == "/foo/bar?v=1");
 }
 
 TEST_CASE("URI with user:pass", "[UriParser]" )
@@ -157,6 +166,7 @@ TEST_CASE("URI with user:pass", "[UriParser]" )
   CHECK(uri.path == "/foo/bar");
   CHECK(uri.query == "v=1");
   CHECK(uri.fragment.empty());
+  CHECK(uri.request_uri == "/foo/bar?v=1");
 }
 
 TEST_CASE("URI with fragment", "[UriParser]" )
@@ -170,6 +180,7 @@ TEST_CASE("URI with fragment", "[UriParser]" )
   CHECK(uri.path == "/foo/bar");
   CHECK(uri.query.empty());
   CHECK(uri.fragment == "frag");
+  CHECK(uri.request_uri == "/foo/bar#frag");
 }
 
 TEST_CASE("Relative URI with query string and fragment", "[UriParser]" )
@@ -183,9 +194,10 @@ TEST_CASE("Relative URI with query string and fragment", "[UriParser]" )
   CHECK(uri.path == "/foo/bar");
   CHECK(uri.query == "v=1");
   CHECK(uri.fragment == "frag");
+  CHECK(uri.request_uri == "/foo/bar?v=1#frag");
 }
 
-TEST_CASE("No user and @ symbol in query", "[UriParser]" )
+TEST_CASE("No user but @ symbol in query", "[UriParser]" )
 {
   auto uri = UriParser("https://www.example.org/foo/bar?user=test@example.org");
   CHECK(uri.scheme == "https");
@@ -196,9 +208,10 @@ TEST_CASE("No user and @ symbol in query", "[UriParser]" )
   CHECK(uri.path == "/foo/bar");
   CHECK(uri.query == "user=test@example.org");
   CHECK(uri.fragment.empty());
+  CHECK(uri.request_uri == "/foo/bar?user=test@example.org");
 }
 
-TEST_CASE("No user and @ symbol in path", "[UriParser]" )
+TEST_CASE("No user but @ symbol in path", "[UriParser]" )
 {
   auto uri = UriParser("https://www.example.org/a@b?user=test@example.org");
   CHECK(uri.scheme == "https");
@@ -209,9 +222,10 @@ TEST_CASE("No user and @ symbol in path", "[UriParser]" )
   CHECK(uri.path == "/a@b");
   CHECK(uri.query == "user=test@example.org");
   CHECK(uri.fragment.empty());
+  CHECK(uri.request_uri == "/a@b?user=test@example.org");
 }
 
-TEST_CASE("No port and : symbol in query", "[UriParser]" )
+TEST_CASE("No port but : symbol in query", "[UriParser]" )
 {
   auto uri = UriParser("https://www.example.org/foo/bar?user=1:2");
   CHECK(uri.scheme == "https");
@@ -222,9 +236,10 @@ TEST_CASE("No port and : symbol in query", "[UriParser]" )
   CHECK(uri.path == "/foo/bar");
   CHECK(uri.query == "user=1:2");
   CHECK(uri.fragment.empty());
+  CHECK(uri.request_uri == "/foo/bar?user=1:2");
 }
 
-TEST_CASE("No port and : symbol in path", "[UriParser]" )
+TEST_CASE("No port but : symbol in path", "[UriParser]" )
 {
   auto uri = UriParser("https://www.example.org/a:b?user=1:2");
   CHECK(uri.scheme == "https");
@@ -235,4 +250,5 @@ TEST_CASE("No port and : symbol in path", "[UriParser]" )
   CHECK(uri.path == "/a:b");
   CHECK(uri.query == "user=1:2");
   CHECK(uri.fragment.empty());
+  CHECK(uri.request_uri == "/a:b?user=1:2");
 }

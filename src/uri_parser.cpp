@@ -95,6 +95,9 @@ UriParser::UriParser(stx::string_view unparsed_uri)
   // Special case: if no '/' was found indicating the path, stop parsing now
   if (path_found)
   {
+    // Set the request_uri ('/path?query#fragment')
+    request_uri = unparsed_uri;
+
     delim = "?";
     delim_pos = unparsed_uri.find(delim);
     bool query_found = (delim_pos != std::string::npos);

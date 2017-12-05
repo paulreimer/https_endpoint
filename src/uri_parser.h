@@ -24,4 +24,5 @@ public:
   stx::string_view path;
   stx::string_view query;
   stx::string_view fragment;
+  stx::string_view request_uri; // path?query#fragment
 };
