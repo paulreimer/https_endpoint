@@ -9,19 +9,17 @@
  */
 #pragma once
 
-#include <cstdio>
-#include <cstdlib>
+#include "tls_connection_interface.h"
+
 #include <streambuf>
 #include <vector>
-
-#include "mbedtls/ssl.h"
 
 class HttpsResponseStreambuf
 : public std::streambuf
 {
 public:
   explicit HttpsResponseStreambuf(
-    mbedtls_ssl_context _ssl,
+    TLSConnectionInterface* _conn,
     size_t _len=512,
     size_t _put_back_len=8);
 
@@ -35,7 +33,7 @@ private:
   HttpsResponseStreambuf &operator= (const HttpsResponseStreambuf &);
 
 private:
-  mbedtls_ssl_context ssl;
+  TLSConnectionInterface* conn;
   const std::size_t put_back_len;
   std::vector<char> buffer;
 };

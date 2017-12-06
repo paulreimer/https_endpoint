@@ -14,15 +14,17 @@
 
 #include "esp_log.h"
 
+#include "mbedtls/ssl.h"
+
 using std::size_t;
 
 constexpr char TAG[] = "HttpsResponseStreambuf";
 
 HttpsResponseStreambuf::HttpsResponseStreambuf(
-  mbedtls_ssl_context _ssl,
+  TLSConnectionInterface* _conn,
   size_t _len,
   size_t _put_back_len)
-: ssl(_ssl)
+: conn(_conn)
 , put_back_len(std::max(_put_back_len, size_t(1)))
 , buffer(std::max(_len, put_back_len) + put_back_len)
 {
@@ -48,9 +50,11 @@ HttpsResponseStreambuf::underflow()
     start += put_back_len;
   }
 
-  // start is now the start of the buffer, proper.
-  int ret = mbedtls_ssl_read(&ssl, (uint8_t*)start, buffer.size() - (start - base));
-
+  // Start is now the start of the buffer, proper.
+  int ret = (conn?
+    conn->read(stx::string_view(start, buffer.size() - (start - base))) :
+    -1
+  );
   if (ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE)
   {
     // this is fine, treat it as reading nothing
