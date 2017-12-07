@@ -16,12 +16,18 @@
 #include <iostream>
 
 HttpsEndpoint::HttpsEndpoint(
+  std::unique_ptr<TLSConnectionInterface> _conn,
   stx::string_view _host,
   const unsigned short _port,
   stx::string_view _cacert_pem
 )
-: conn(_host, _port, _cacert_pem)
+: conn(std::move(_conn))
 {
+  if (conn)
+  {
+    conn->initialize(_host, _port, _cacert_pem);
+  }
+
   // Update logging message prefix
   host.assign(_host.data(), _host.size());
   TAG = host.data();
@@ -32,10 +38,11 @@ HttpsEndpoint::HttpsEndpoint(
 }
 
 HttpsEndpoint::HttpsEndpoint(
+  std::unique_ptr<TLSConnectionInterface> _conn,
   stx::string_view _host,
   stx::string_view _cacert_pem
 )
-: HttpsEndpoint::HttpsEndpoint(_host, 443, _cacert_pem)
+: HttpsEndpoint::HttpsEndpoint(std::move(_conn), _host, 443, _cacert_pem)
 {}
 
 HttpsEndpoint::~HttpsEndpoint()
@@ -49,7 +56,7 @@ HttpsEndpoint::connect(
 )
 {
   // Update cacert_pem and then connect
-  if (conn.set_cacert(_cacert_pem))
+  if (conn && conn->set_cacert(_cacert_pem))
   {
     return this->connect(_host, _port);
   }
@@ -81,14 +88,14 @@ HttpsEndpoint::connect(
   add_header("Host", _host);
 
   // Use existing cacert_pem
-  return conn.connect(_host, _port);
+  return (conn && conn->connect(_host, _port));
 }
 
 bool
 HttpsEndpoint::ensure_connected()
 {
   // Attempt reconnect, which may initiate a 1st connection also
-  return conn.reconnect();
+  return (conn && conn->reconnect());
 }
 
 std::string
@@ -175,6 +182,11 @@ HttpsEndpoint::make_request(
   ResponseCallback process_resp_body
 )
 {
+  if (!conn)
+  {
+    return false;
+  }
+
   // Make sure we are connected, re-use an existing session if possible/required
   ensure_connected();
 
@@ -192,12 +204,11 @@ HttpsEndpoint::make_request(
 
   int ret;
 
-  while ((ret = conn.write(req_str)) <= 0)
+  while ((ret = conn->write(req_str)) <= 0)
   {
     if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
     {
       ESP_LOGE(TAG, "mbedtls_ssl_write returned -0x%x, exit immediately", -ret);
-      conn.tls_print_error(ret);
 
       // exit immediately
       ESP_LOGE(TAG, "Failed, deleting task.");
@@ -210,7 +221,7 @@ HttpsEndpoint::make_request(
 
   // Read the response
   ESP_LOGI(TAG, "Reading HTTP response...");
-  HttpsResponseStreambuf resp_buf(&conn, 512);
+  HttpsResponseStreambuf resp_buf(conn.get(), 512);
   std::istream resp(&resp_buf);
 
   // Extract status line for the response code
@@ -256,7 +267,7 @@ HttpsEndpoint::make_request(
 
   ESP_LOGI(TAG, "Finished parsing HTTP response.");
 
-  return conn.disconnect();
+  return (conn && conn->disconnect());
 }
 
 // Generic method, optional headers/query

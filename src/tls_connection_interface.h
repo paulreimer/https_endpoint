@@ -16,6 +16,12 @@ class TLSConnectionInterface
 public:
   virtual ~TLSConnectionInterface() = default;
 
+  virtual bool initialize(
+    stx::string_view _host,
+    unsigned short _port=443,
+    stx::string_view _cacert_pem=""
+  ) = 0;
+
   virtual bool init() = 0;
   virtual bool clear() = 0;
 
@@ -38,7 +44,7 @@ public:
 
   virtual bool connect(
     stx::string_view _host,
-    const unsigned short _port=443
+    unsigned short _port=443
   ) = 0;
 
   virtual bool reconnect() = 0;

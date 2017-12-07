@@ -30,13 +30,21 @@ class TLSConnection
 : public TLSConnectionInterface
 {
 public:
+  TLSConnection() = default;
+
   TLSConnection(
     stx::string_view _host,
-    const unsigned short _port,
+    unsigned short _port,
     stx::string_view _cacert_pem
   );
 
   virtual ~TLSConnection();
+
+  bool initialize(
+    stx::string_view _host,
+    unsigned short _port=443,
+    stx::string_view _cacert_pem=""
+  );
 
   bool init();
   bool clear();
@@ -61,7 +69,7 @@ public:
 
   bool connect(
     stx::string_view _host,
-    const unsigned short _port
+    unsigned short _port
   );
 
   bool reconnect();
@@ -81,7 +89,7 @@ private:
   bool _ensure_initialized();
   bool _ensure_connected(
     stx::string_view _host,
-    const unsigned short _port
+    unsigned short _port
   );
   bool _connect();
 

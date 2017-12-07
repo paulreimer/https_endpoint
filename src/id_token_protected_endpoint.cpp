@@ -15,30 +15,41 @@
 #include "esp_log.h"
 
 IdTokenProtectedEndpoint::IdTokenProtectedEndpoint(
+  std::unique_ptr<TLSConnectionInterface> _conn,
   stx::string_view _host,
   const unsigned short _port,
   stx::string_view _cacert_pem,
+  std::unique_ptr<TLSConnectionInterface> _id_token_conn,
   stx::string_view _id_token_host,
   const unsigned short _id_token_port,
   stx::string_view _id_token_cacert_pem,
   stx::string_view _refresh_token
 )
-: HttpsEndpoint(_host, _port, _cacert_pem)
-, id_token_endpoint(_id_token_host, _id_token_port, _id_token_cacert_pem)
+: HttpsEndpoint(std::move(_conn), _host, _port, _cacert_pem)
+, id_token_endpoint(
+    std::move(_id_token_conn),
+    _id_token_host,
+    _id_token_port,
+    _id_token_cacert_pem
+  )
 , refresh_token(_refresh_token)
 , oidc_parser(OIDC::embedded_files::oidc_fbs, OIDC::embedded_files::oidc_bfbs)
 {
 }
 
 IdTokenProtectedEndpoint::IdTokenProtectedEndpoint(
+  std::unique_ptr<TLSConnectionInterface> _conn,
   stx::string_view _host,
   stx::string_view _cacert_pem,
+  std::unique_ptr<TLSConnectionInterface> _id_token_conn,
   stx::string_view _id_token_host,
   stx::string_view _id_token_cacert_pem,
   stx::string_view _refresh_token
 )
 : IdTokenProtectedEndpoint(
+    std::move(_conn),
     _host, 443, _cacert_pem,
+    std::move(_id_token_conn),
     _id_token_host, 443, _id_token_cacert_pem,
     _refresh_token
   )
@@ -59,9 +70,7 @@ IdTokenProtectedEndpoint::ensure_connected()
 bool
 IdTokenProtectedEndpoint::set_refresh_token(stx::string_view _refresh_token)
 {
-  printf("refresh_token.size() = %d\n", refresh_token.size());
   refresh_token.assign(_refresh_token.data(), _refresh_token.size());
-  printf("refresh_token.size() = %d\n", refresh_token.size());
   return true;
 }
 

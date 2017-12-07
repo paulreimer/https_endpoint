@@ -19,19 +19,52 @@
 
 TLSConnection::TLSConnection(
   stx::string_view _host,
-  const unsigned short _port,
+  unsigned short _port,
   stx::string_view _cacert_pem
 )
-: host(_host)
-, port(_port)
-, TAG(host.data())
 {
-  set_cacert(_cacert_pem);
+  initialize(_host, _port, _cacert_pem);
 }
 
 TLSConnection::~TLSConnection()
 {
   clear();
+}
+
+bool
+TLSConnection::initialize(
+  stx::string_view _host,
+  unsigned short _port,
+  stx::string_view _cacert_pem
+)
+{
+  // Update our cached state
+  bool host_changed = ((_host != host) || (_port != port));
+  if (host_changed)
+  {
+    // Disconnect if already connected and new connection parameters specified
+    if (connected())
+    {
+      disconnect();
+    }
+
+    // Mark the session (for the previous host) as invalid
+    clear_session();
+
+    // Update member variables for desired connection host/port/cacert
+    host.assign(_host.data(), _host.size());
+    port = _port;
+
+    // Update logging message prefix
+    TAG = host.data();
+  }
+
+  if (_cacert_pem.empty() == false)
+  {
+    set_cacert(_cacert_pem);
+  }
+
+  return host_changed;
 }
 
 bool
@@ -195,7 +228,7 @@ TLSConnection::set_cacert(
 
   ret = mbedtls_x509_crt_parse(
     &cacert,
-    (const unsigned char*)_cacert_pem.data(),
+    (unsigned char*)_cacert_pem.data(),
     _cacert_pem.size()
   );
   if (ret < 0)
@@ -262,36 +295,18 @@ TLSConnection::_ensure_initialized()
 bool
 TLSConnection::_ensure_connected(
   stx::string_view _host,
-  const unsigned short _port
+  unsigned short _port
 )
 {
-  // Update our cached state
-  bool host_changed = ((_host != host) || (_port != port));
+  auto host_changed = initialize(_host, _port);
   if (host_changed)
   {
-    // Disconnect if already connected and new connection parameters specified
-    if (connected())
-    {
-      std::cout << "will disconnect and clear" << std::endl;
-      disconnect();
-    }
-
     //TODO: this shouldn't be needed
     clear();
     if (_cacert_set)
     {
       set_cacert(cacert_pem);
     }
-
-    // Mark the session (for the previous host) as invalid
-    clear_session();
-
-    // Update member variables for desired connection host/port/cacert
-    host.assign(_host.data(), _host.size());
-    port = _port;
-
-    // Update logging message prefix
-    TAG = host.data();
   }
 
   if (!connected() && _has_valid_session)
@@ -314,7 +329,7 @@ TLSConnection::_ensure_connected(
 bool
 TLSConnection::connect(
   stx::string_view _host,
-  const unsigned short _port
+  unsigned short _port
 )
 {
   if (!_ensure_initialized())

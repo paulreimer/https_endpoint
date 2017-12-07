@@ -23,12 +23,14 @@ class HttpsEndpoint
 {
 public:
   HttpsEndpoint(
+    std::unique_ptr<TLSConnectionInterface> _conn,
     stx::string_view _host,
     const unsigned short _port,
     stx::string_view _cacert_pem
   );
 
   HttpsEndpoint(
+    std::unique_ptr<TLSConnectionInterface> _conn,
     stx::string_view _host,
     stx::string_view _cacert_pem
   );
@@ -145,5 +147,5 @@ protected:
   delegate<bool(HttpsResponseStreambuf&)> process_body;
 
 private:
-  TLSConnection conn;
+  std::unique_ptr<TLSConnectionInterface> conn;
 };
