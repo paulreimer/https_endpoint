@@ -14,7 +14,7 @@
 
 #include "delegate.hpp"
 
-#include <map>
+#include <unordered_map>
 #include <sstream>
 
 #include "stx/string_view.hpp"
@@ -35,11 +35,11 @@ public:
 
   ~HttpsEndpoint();
 
-  typedef std::map<stx::string_view, stx::string_view> QueryMapView;
-  typedef std::map<stx::string_view, stx::string_view> HeaderMapView;
+  typedef std::unordered_map<stx::string_view, stx::string_view> QueryMapView;
+  typedef std::unordered_map<stx::string_view, stx::string_view> HeaderMapView;
 
-  typedef std::map<std::string, std::string> QueryMap;
-  typedef std::map<std::string, std::string> HeaderMap;
+  typedef std::unordered_map<std::string, std::string> QueryMap;
+  typedef std::unordered_map<std::string, std::string> HeaderMap;
 
   typedef delegate<bool(ssize_t, std::istream&)> ResponseCallback;
 
@@ -139,8 +139,8 @@ protected:
   const char* TAG = nullptr;
   std::string host;
 
-  std::map<std::string, std::string> headers;
-  std::map<std::string, std::string> query_params;
+  std::unordered_map<std::string, std::string> headers;
+  std::unordered_map<std::string, std::string> query_params;
 
   delegate<bool(HttpsResponseStreambuf&)> process_body;
 
