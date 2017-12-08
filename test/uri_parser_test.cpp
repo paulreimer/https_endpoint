@@ -7,8 +7,7 @@
  * or send a letter to
  * Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
  */
-#define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
-#include "catch.hpp"
+#include "test_runner.h"
 
 #include "../src/uri_parser.h"
 
