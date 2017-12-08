@@ -9,7 +9,9 @@
  */
 #include "https_endpoint.h"
 
+#ifndef ESP_LOGI
 #include "esp_log.h"
+#endif
 
 #include <string.h>
 
@@ -211,8 +213,8 @@ HttpsEndpoint::make_request(
       ESP_LOGE(TAG, "mbedtls_ssl_write returned -0x%x, exit immediately", -ret);
 
       // exit immediately
-      ESP_LOGE(TAG, "Failed, deleting task.");
-      vTaskDelete(nullptr);
+      ESP_LOGE(TAG, "Failed, trigger disconnect now.");
+      conn->disconnect();
       return false;
     }
   }
@@ -226,7 +228,7 @@ HttpsEndpoint::make_request(
 
   // Extract status line for the response code
   std::string protocol, status;
-  ssize_t code = -1;
+  int code = -1;
   resp >> protocol >> code >> status;
   ESP_LOGI(TAG, "Received %s response %d %s",
     protocol.c_str(), code, status.c_str()

@@ -12,9 +12,9 @@
 #include <algorithm>
 #include <cstring>
 
+#ifndef ESP_LOGI
 #include "esp_log.h"
-
-#include "mbedtls/ssl.h"
+#endif
 
 using std::size_t;
 

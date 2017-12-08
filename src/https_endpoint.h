@@ -10,7 +10,7 @@
 #pragma once
 
 #include "https_response_streambuf.h"
-#include "tls_connection.h"
+#include "tls_connection_interface.h"
 
 #include "delegate.hpp"
 
@@ -43,7 +43,7 @@ public:
   typedef std::unordered_map<std::string, std::string> QueryMap;
   typedef std::unordered_map<std::string, std::string> HeaderMap;
 
-  typedef delegate<bool(ssize_t, std::istream&)> ResponseCallback;
+  typedef delegate<bool(int, std::istream&)> ResponseCallback;
 
   // Virtual methods
   virtual bool connect(

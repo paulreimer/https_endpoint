@@ -106,7 +106,7 @@ IdTokenProtectedEndpoint::refresh_id_token(bool update_refresh_token)
     {{"Content-Type", "application/json"}},
     req_body,
     [update_refresh_token, this]
-    (ssize_t code, std::istream& resp) -> bool
+    (int code, std::istream& resp) -> bool
     {
       FlatbuffersStreamingJsonVisitor<OIDC::TokenT, OIDC::ErrorT> visitor(
         oidc_parser
