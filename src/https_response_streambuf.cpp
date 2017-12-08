@@ -16,6 +16,10 @@
 #include "esp_log.h"
 #endif
 
+#ifndef MBEDTLS_ERR_SSL_WANT_READ
+#include "mbedtls/ssl.h"
+#endif
+
 using std::size_t;
 
 constexpr char TAG[] = "HttpsResponseStreambuf";
