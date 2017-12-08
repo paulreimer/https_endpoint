@@ -194,7 +194,7 @@ HttpsEndpoint::make_request(
 
   // Write the request
   ESP_LOGI(TAG, "Writing HTTP request %.*s",
-    path.size(), path.data()
+    (int)path.size(), path.data()
   );
 
   //stx::string_view req_str(http_req.str());
@@ -239,7 +239,7 @@ HttpsEndpoint::make_request(
   bool body_was_found = false;
   size_t delim_pos = 0;
   char c;
-  size_t header_size = 0;
+  int header_size = 0;
   while (resp.get(c))
   {
     delim_pos = (c == delim[delim_pos])? (delim_pos+1) : 0;
