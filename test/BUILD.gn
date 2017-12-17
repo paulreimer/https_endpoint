@@ -1,0 +1,52 @@
+config("compiler_defaults") {
+  if (current_os == "linux") {
+    cflags = [
+      "-fPIC",
+      "-pthread",
+    ]
+  }
+}
+
+config("executable_ldconfig") {
+  ldflags = [
+  ]
+}
+
+executable("test_runner") {
+
+  defines = [
+    "ESP_LOGE(tag, format, ...)=printf(format, ##__VA_ARGS__)",
+    "ESP_LOGW(tag, format, ...)=printf(format, ##__VA_ARGS__)",
+    "ESP_LOGI(tag, format, ...)=printf(format, ##__VA_ARGS__)",
+    "ESP_LOGD(tag, format, ...)=printf(format, ##__VA_ARGS__)",
+    "ESP_LOGV(tag, format, ...)=printf(format, ##__VA_ARGS__)",
+    "MBEDTLS_ERR_SSL_WANT_READ=-0x6900",
+    "MBEDTLS_ERR_SSL_WANT_WRITE=0x6880",
+    "MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY=-0x7880",
+  ]
+
+  include_dirs = [
+    "../cpp17_headers/include",
+    "../delegate",
+    ".",
+  ]
+
+  cflags_cc = [
+    "-std=c++14",
+  ]
+
+  sources = [
+    "test_runner.cpp",
+    "https_endpoint_test.cpp",
+    "uri_parser_test.cpp",
+    "../src/uri_parser.cpp",
+    "../src/https_endpoint.cpp",
+    "../src/https_response_streambuf.cpp",
+  ]
+}
+
+group("root") {
+  deps = [
+    ":test_runner",
+  ]
+}
