@@ -46,7 +46,7 @@ public:
   MAKE_MOCK1(read, int(stx::string_view), override);
 };
 
-TEST_CASE("Does TLSConnection lifecycle", "[HttpsEndpoint]" )
+TEST_CASE("Does TLSConnection lifecycle")
 {
   std::unique_ptr<TLSConnectionInterface> _conn = std::make_unique<TLSConnectionMock>();
   TLSConnectionMock& conn(*reinterpret_cast<TLSConnectionMock*>(_conn.get()));

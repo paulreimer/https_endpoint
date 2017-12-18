@@ -8,11 +8,11 @@
  * Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
  */
 #define TROMPELOEIL_SANITY_CHECKS
-// Must be before #include <catch.hpp>
-#define CATCH_CONFIG_MAIN
+// Must be before #include <doctest.h>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 
 #include <trompeloeil.hpp>
-#include <catch.hpp>
+#include <doctest.h>
 
 namespace trompeloeil
 {
@@ -21,21 +21,16 @@ namespace trompeloeil
     severity s,
     const char* file,
     unsigned long line,
-    const char* msg
-  )
+    const char* msg)
   {
-    std::ostringstream os;
-    if (line) os << file << ':' << line << '\n';
-    os << msg;
-    auto failure = os.str();
+    auto f = line ? file : "[file/line unavailable]";
     if (s == severity::fatal)
     {
-      FAIL(failure);
+      ADD_FAIL_AT(f, line, msg);
     }
     else
     {
-      CAPTURE(failure);
-      CHECK(failure.empty());
+      ADD_FAIL_CHECK_AT(f, line, msg);
     }
   }
 }

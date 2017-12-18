@@ -11,7 +11,7 @@
 
 #include "../src/uri_parser.h"
 
-TEST_CASE("Null URI", "[UriParser]" )
+TEST_CASE("Null URI")
 {
   std::string _uri("");
   auto uri = UriParser(_uri);
@@ -26,7 +26,7 @@ TEST_CASE("Null URI", "[UriParser]" )
   CHECK(uri.request_uri.empty());
 }
 
-TEST_CASE("Path-only URI", "[UriParser]" )
+TEST_CASE("Path-only URI")
 {
   auto uri = UriParser("/foo/bar");
   CHECK(uri.host.empty());
@@ -41,7 +41,7 @@ TEST_CASE("Path-only URI", "[UriParser]" )
   CHECK(uri.request_uri == "/foo/bar");
 }
 
-TEST_CASE("Typical URI", "[UriParser]" )
+TEST_CASE("Typical URI")
 {
   auto uri = UriParser("https://www.example.org/foo/bar");
   CHECK(uri.scheme == "https");
@@ -55,7 +55,7 @@ TEST_CASE("Typical URI", "[UriParser]" )
   CHECK(uri.request_uri == "/foo/bar");
 }
 
-TEST_CASE("HTTP URI", "[UriParser]" )
+TEST_CASE("HTTP URI")
 {
   auto uri = UriParser("http://www.example.org/foo/bar");
   CHECK(uri.scheme == "http");
@@ -69,7 +69,7 @@ TEST_CASE("HTTP URI", "[UriParser]" )
   CHECK(uri.request_uri == "/foo/bar");
 }
 
-TEST_CASE("URI with missing scheme", "[UriParser]" )
+TEST_CASE("URI with missing scheme")
 {
   // no scheme
   auto uri = UriParser("www.example.org/foo/bar");
@@ -84,7 +84,7 @@ TEST_CASE("URI with missing scheme", "[UriParser]" )
   CHECK(uri.request_uri == "/foo/bar");
 }
 
-TEST_CASE("URI with non-standard port", "[UriParser]" )
+TEST_CASE("URI with non-standard port")
 {
   auto uri = UriParser("https://www.example.org:1234/foo/bar");
   CHECK(uri.scheme == "https");
@@ -98,7 +98,7 @@ TEST_CASE("URI with non-standard port", "[UriParser]" )
   CHECK(uri.request_uri == "/foo/bar");
 }
 
-TEST_CASE("URI with no scheme and non-standard port", "[UriParser]" )
+TEST_CASE("URI with no scheme and non-standard port")
 {
   auto uri = UriParser("www.example.org:1234/foo/bar");
   CHECK(uri.scheme.empty());
@@ -112,7 +112,7 @@ TEST_CASE("URI with no scheme and non-standard port", "[UriParser]" )
   CHECK(uri.request_uri == "/foo/bar");
 }
 
-TEST_CASE("URI with no path", "[UriParser]" )
+TEST_CASE("URI with no path")
 {
   auto uri = UriParser("https://www.example.org");
   CHECK(uri.scheme == "https");
@@ -126,7 +126,7 @@ TEST_CASE("URI with no path", "[UriParser]" )
   CHECK(uri.request_uri.empty());
 }
 
-TEST_CASE("URI with query string", "[UriParser]" )
+TEST_CASE("URI with query string")
 {
   auto uri = UriParser("https://www.example.org/foo/bar?v=1");
   CHECK(uri.scheme == "https");
@@ -140,7 +140,7 @@ TEST_CASE("URI with query string", "[UriParser]" )
   CHECK(uri.request_uri == "/foo/bar?v=1");
 }
 
-TEST_CASE("URI with user", "[UriParser]" )
+TEST_CASE("URI with user")
 {
   auto uri = UriParser("https://user@www.example.org/foo/bar?v=1");
   CHECK(uri.scheme == "https");
@@ -154,7 +154,7 @@ TEST_CASE("URI with user", "[UriParser]" )
   CHECK(uri.request_uri == "/foo/bar?v=1");
 }
 
-TEST_CASE("URI with user:pass", "[UriParser]" )
+TEST_CASE("URI with user:pass")
 {
   auto uri = UriParser("https://user:pass@www.example.org/foo/bar?v=1");
   CHECK(uri.scheme == "https");
@@ -168,7 +168,7 @@ TEST_CASE("URI with user:pass", "[UriParser]" )
   CHECK(uri.request_uri == "/foo/bar?v=1");
 }
 
-TEST_CASE("URI with fragment", "[UriParser]" )
+TEST_CASE("URI with fragment")
 {
   auto uri = UriParser("https://www.example.org/foo/bar#frag");
   CHECK(uri.scheme == "https");
@@ -182,7 +182,7 @@ TEST_CASE("URI with fragment", "[UriParser]" )
   CHECK(uri.request_uri == "/foo/bar#frag");
 }
 
-TEST_CASE("Relative URI with query string and fragment", "[UriParser]" )
+TEST_CASE("Relative URI with query string and fragment")
 {
   auto uri = UriParser("/foo/bar?v=1#frag");
   CHECK(uri.scheme.empty());
@@ -196,7 +196,7 @@ TEST_CASE("Relative URI with query string and fragment", "[UriParser]" )
   CHECK(uri.request_uri == "/foo/bar?v=1#frag");
 }
 
-TEST_CASE("No user but @ symbol in query", "[UriParser]" )
+TEST_CASE("No user but @ symbol in query")
 {
   auto uri = UriParser("https://www.example.org/foo/bar?user=test@example.org");
   CHECK(uri.scheme == "https");
@@ -210,7 +210,7 @@ TEST_CASE("No user but @ symbol in query", "[UriParser]" )
   CHECK(uri.request_uri == "/foo/bar?user=test@example.org");
 }
 
-TEST_CASE("No user but @ symbol in path", "[UriParser]" )
+TEST_CASE("No user but @ symbol in path")
 {
   auto uri = UriParser("https://www.example.org/a@b?user=test@example.org");
   CHECK(uri.scheme == "https");
@@ -224,7 +224,7 @@ TEST_CASE("No user but @ symbol in path", "[UriParser]" )
   CHECK(uri.request_uri == "/a@b?user=test@example.org");
 }
 
-TEST_CASE("No port but : symbol in query", "[UriParser]" )
+TEST_CASE("No port but : symbol in query")
 {
   auto uri = UriParser("https://www.example.org/foo/bar?user=1:2");
   CHECK(uri.scheme == "https");
@@ -238,7 +238,7 @@ TEST_CASE("No port but : symbol in query", "[UriParser]" )
   CHECK(uri.request_uri == "/foo/bar?user=1:2");
 }
 
-TEST_CASE("No port but : symbol in path", "[UriParser]" )
+TEST_CASE("No port but : symbol in path")
 {
   auto uri = UriParser("https://www.example.org/a:b?user=1:2");
   CHECK(uri.scheme == "https");
