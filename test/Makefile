@@ -17,9 +17,7 @@ TEST_SRCS := \
 	uri_parser_test.cpp
 
 TEST_DEPS := \
-	../src/uri_parser.cpp \
-	../src/https_endpoint.cpp \
-	../src/https_response_streambuf.cpp
+	../src/uri_parser.cpp
 
 test_runner: $(TEST_SRCS) $(TEST_DEPS) test_runner.cpp
 	c++ $(CXXFLAGS) $^ -o $@

@@ -9,6 +9,8 @@
  */
 #include "https_response_streambuf.h"
 
+#include "stx/string_view.hpp"
+
 #include <algorithm>
 #include <cstring>
 
@@ -22,10 +24,13 @@
 
 using std::size_t;
 
-constexpr char TAG[] = "HttpsResponseStreambuf";
+// Explicit instantiation
+template<class TLSConnectionImpl>
+constexpr char HttpsResponseStreambuf<TLSConnectionImpl>::TAG[];
 
-HttpsResponseStreambuf::HttpsResponseStreambuf(
-  TLSConnectionInterface* _conn,
+template <class TLSConnectionImpl>
+HttpsResponseStreambuf<TLSConnectionImpl>::HttpsResponseStreambuf(
+  TLSConnectionImpl& _conn,
   size_t _len,
   size_t _put_back_len)
 : conn(_conn)
@@ -36,8 +41,9 @@ HttpsResponseStreambuf::HttpsResponseStreambuf(
   setg(end, end, end);
 }
 
+template <class TLSConnectionImpl>
 std::streambuf::int_type
-HttpsResponseStreambuf::underflow()
+HttpsResponseStreambuf<TLSConnectionImpl>::underflow()
 {
   if (gptr() < egptr()) // buffer not exhausted
   {
@@ -55,10 +61,7 @@ HttpsResponseStreambuf::underflow()
   }
 
   // Start is now the start of the buffer, proper.
-  int ret = (conn?
-    conn->read(stx::string_view(start, buffer.size() - (start - base))) :
-    -1
-  );
+  int ret = conn.read(stx::string_view(start, buffer.size() - (start - base)));
   if (ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE)
   {
     // this is fine, treat it as reading nothing

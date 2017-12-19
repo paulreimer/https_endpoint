@@ -16,16 +16,17 @@
 
 #include <string>
 
+template <class TLSConnectionImpl>
 class IdTokenProtectedEndpoint
-: public HttpsEndpoint
+: public HttpsEndpoint<IdTokenProtectedEndpoint<TLSConnectionImpl>, TLSConnectionImpl>
 {
 public:
   IdTokenProtectedEndpoint(
-    std::unique_ptr<TLSConnectionInterface> _conn,
+    TLSConnectionImpl& _conn,
     stx::string_view _host,
     const unsigned short _port,
     stx::string_view _cacert_pem,
-    std::unique_ptr<TLSConnectionInterface> _id_token_conn,
+    TLSConnectionImpl& _id_token_conn,
     stx::string_view _id_token_host,
     const unsigned short _id_token_port,
     stx::string_view _id_token_cacert_pem,
@@ -33,17 +34,17 @@ public:
   );
 
   IdTokenProtectedEndpoint(
-    std::unique_ptr<TLSConnectionInterface> _conn,
+    TLSConnectionImpl& _conn,
     stx::string_view _host,
     stx::string_view _cacert_pem,
-    std::unique_ptr<TLSConnectionInterface> _id_token_conn,
+    TLSConnectionImpl& _id_token_conn,
     stx::string_view _id_token_host,
     stx::string_view _id_token_cacert_pem,
     stx::string_view _refresh_token
   );
 
-  // Fetch a new token (if needed) then Call the base class implementation
-  virtual bool ensure_connected();
+  // Fetch a new token (if needed) then call the base class implementation
+  bool ensure_connected();
 
   // Manually update the refresh token
   bool set_refresh_token(const stx::string_view _refresh_token);
@@ -55,7 +56,8 @@ public:
   virtual stx::string_view get_id_token();
   virtual bool set_id_token(const stx::string_view id_token);
 
-  HttpsEndpoint id_token_endpoint;
+  //HttpsEndpoint<IdTokenProtectedEndpoint, TLSConnectionImpl> id_token_endpoint;
+  HttpsEndpointAutoConnect<TLSConnectionImpl> id_token_endpoint;
 
 protected:
   std::string refresh_token;
@@ -66,3 +68,5 @@ private:
 
   FlatbuffersStreamingJsonParser oidc_parser;
 };
+
+#include "id_token_protected_endpoint_impl.h"

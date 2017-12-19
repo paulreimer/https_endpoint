@@ -10,7 +10,6 @@
 #pragma once
 
 #include "https_response_streambuf.h"
-#include "tls_connection_interface.h"
 
 #include "delegate.hpp"
 
@@ -19,18 +18,19 @@
 
 #include "stx/string_view.hpp"
 
+template <class ConnectionHelper, class TLSConnectionImpl>
 class HttpsEndpoint
 {
 public:
   HttpsEndpoint(
-    std::unique_ptr<TLSConnectionInterface> _conn,
+    TLSConnectionImpl& _conn,
     stx::string_view _host,
     const unsigned short _port,
     stx::string_view _cacert_pem
   );
 
   HttpsEndpoint(
-    std::unique_ptr<TLSConnectionInterface> _conn,
+    TLSConnectionImpl& _conn,
     stx::string_view _host,
     stx::string_view _cacert_pem
   );
@@ -45,14 +45,14 @@ public:
 
   typedef delegate<bool(int, std::istream&)> ResponseCallback;
 
-  // Virtual methods
-  virtual bool connect(
+  // CRTP methods
+  bool ensure_connected();
+
+  bool connect(
     stx::string_view _host,
     const unsigned short _port,
     stx::string_view _cacert_pem
   );
-
-  virtual bool ensure_connected();
 
   // Convenience method
   bool connect(
@@ -144,8 +144,24 @@ protected:
   std::unordered_map<std::string, std::string> headers;
   std::unordered_map<std::string, std::string> query_params;
 
-  delegate<bool(HttpsResponseStreambuf&)> process_body;
+  delegate<bool(HttpsResponseStreambuf<TLSConnectionImpl>&)> process_body;
 
-private:
-  std::unique_ptr<TLSConnectionInterface> conn;
+protected:
+  TLSConnectionImpl& conn;
 };
+
+template <class TLSConnectionImpl>
+class HttpsEndpointAutoConnect
+: public HttpsEndpoint<HttpsEndpointAutoConnect<TLSConnectionImpl>, TLSConnectionImpl>
+{
+public:
+  using HttpsEndpoint<HttpsEndpointAutoConnect<TLSConnectionImpl>, TLSConnectionImpl>::HttpsEndpoint;
+
+  bool ensure_connected()
+  {
+    // Attempt reconnect, which may initiate a 1st connection also
+    return this->conn.reconnect();
+  }
+};
+
+#include "https_endpoint_impl.h"

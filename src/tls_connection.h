@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "tls_connection_interface.h"
+#include "stx/string_view.hpp"
 
 #include "lwip/dns.h"
 #include "lwip/err.h"
@@ -27,7 +27,6 @@
 #include "mbedtls/esp_debug.h"
 
 class TLSConnection
-: public TLSConnectionInterface
 {
 public:
   TLSConnection() = default;
@@ -38,7 +37,7 @@ public:
     stx::string_view _cacert_pem
   );
 
-  virtual ~TLSConnection();
+  ~TLSConnection();
 
   bool initialize(
     stx::string_view _host,

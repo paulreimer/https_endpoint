@@ -21,18 +21,16 @@
 
 #include <iostream>
 
-HttpsEndpoint::HttpsEndpoint(
-  std::unique_ptr<TLSConnectionInterface> _conn,
+template <class ConnectionHelper, class TLSConnectionImpl>
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::HttpsEndpoint(
+  TLSConnectionImpl& _conn,
   stx::string_view _host,
   const unsigned short _port,
   stx::string_view _cacert_pem
 )
-: conn(std::move(_conn))
+: conn(_conn)
 {
-  if (conn)
-  {
-    conn->initialize(_host, _port, _cacert_pem);
-  }
+  conn.initialize(_host, _port, _cacert_pem);
 
   // Update logging message prefix
   host.assign(_host.data(), _host.size());
@@ -43,26 +41,29 @@ HttpsEndpoint::HttpsEndpoint(
   add_header("User-Agent", "esp-idf/1.0 esp32");
 }
 
-HttpsEndpoint::HttpsEndpoint(
-  std::unique_ptr<TLSConnectionInterface> _conn,
+template <class ConnectionHelper, class TLSConnectionImpl>
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::HttpsEndpoint(
+  TLSConnectionImpl& _conn,
   stx::string_view _host,
   stx::string_view _cacert_pem
 )
-: HttpsEndpoint::HttpsEndpoint(std::move(_conn), _host, 443, _cacert_pem)
+: HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::HttpsEndpoint(_conn, _host, 443, _cacert_pem)
 {}
 
-HttpsEndpoint::~HttpsEndpoint()
+template <class ConnectionHelper, class TLSConnectionImpl>
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::~HttpsEndpoint()
 {}
 
+template <class ConnectionHelper, class TLSConnectionImpl>
 bool
-HttpsEndpoint::connect(
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::connect(
   stx::string_view _host,
   const unsigned short _port,
   stx::string_view _cacert_pem
 )
 {
   // Update cacert_pem and then connect
-  if (conn && conn->set_cacert(_cacert_pem))
+  if (conn.set_cacert(_cacert_pem))
   {
     return this->connect(_host, _port);
   }
@@ -70,8 +71,9 @@ HttpsEndpoint::connect(
   return false;
 }
 
+template <class ConnectionHelper, class TLSConnectionImpl>
 bool
-HttpsEndpoint::connect(
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::connect(
   stx::string_view _host,
   stx::string_view _cacert_pem
 )
@@ -79,8 +81,9 @@ HttpsEndpoint::connect(
   return this->connect(_host, 443, _cacert_pem);
 }
 
+template <class ConnectionHelper, class TLSConnectionImpl>
 bool
-HttpsEndpoint::connect(
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::connect(
   stx::string_view _host,
   const unsigned short _port
 )
@@ -94,22 +97,24 @@ HttpsEndpoint::connect(
   add_header("Host", _host);
 
   // Use existing cacert_pem
-  return (conn && conn->connect(_host, _port));
+  return conn.connect(_host, _port);
 }
 
+// CRTP methods
+template <class ConnectionHelper, class TLSConnectionImpl>
 bool
-HttpsEndpoint::ensure_connected()
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::ensure_connected()
 {
-  // Attempt reconnect, which may initiate a 1st connection also
-  return (conn && conn->reconnect());
+  return static_cast<ConnectionHelper*>(this)->ensure_connected();
 }
 
+template <class ConnectionHelper, class TLSConnectionImpl>
 std::string
-HttpsEndpoint::generate_request(
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::generate_request(
   stx::string_view method,
   stx::string_view path,
-  const HttpsEndpoint::QueryMapView& extra_query_params,
-  const HttpsEndpoint::HeaderMapView& extra_headers,
+  const HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::QueryMapView& extra_query_params,
+  const HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::HeaderMapView& extra_headers,
   stx::string_view req_body
 )
 {
@@ -178,21 +183,17 @@ HttpsEndpoint::generate_request(
   return http_req.str();
 }
 
+template <class ConnectionHelper, class TLSConnectionImpl>
 bool
-HttpsEndpoint::make_request(
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::make_request(
   stx::string_view method,
   stx::string_view path,
-  const HttpsEndpoint::QueryMapView& extra_query_params,
-  const HttpsEndpoint::HeaderMapView& extra_headers,
+  const HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::QueryMapView& extra_query_params,
+  const HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::HeaderMapView& extra_headers,
   stx::string_view req_body,
   ResponseCallback process_resp_body
 )
 {
-  if (!conn)
-  {
-    return false;
-  }
-
   // Make sure we are connected, re-use an existing session if possible/required
   ensure_connected();
 
@@ -210,7 +211,7 @@ HttpsEndpoint::make_request(
 
   int ret;
 
-  while ((ret = conn->write(req_str)) <= 0)
+  while ((ret = conn.write(req_str)) <= 0)
   {
     if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
     {
@@ -218,7 +219,7 @@ HttpsEndpoint::make_request(
 
       // exit immediately
       ESP_LOGE(TAG, "Failed, trigger disconnect now.");
-      conn->disconnect();
+      conn.disconnect();
       return false;
     }
   }
@@ -227,7 +228,7 @@ HttpsEndpoint::make_request(
 
   // Read the response
   ESP_LOGI(TAG, "Reading HTTP response...");
-  HttpsResponseStreambuf resp_buf(conn.get(), 512);
+  HttpsResponseStreambuf<TLSConnectionImpl> resp_buf(conn, 512);
   std::istream resp(&resp_buf);
 
   // Extract status line for the response code
@@ -273,15 +274,16 @@ HttpsEndpoint::make_request(
 
   ESP_LOGI(TAG, "Finished parsing HTTP response.");
 
-  return (conn && conn->disconnect());
+  return conn.disconnect();
 }
 
 // Generic method, optional headers/query
+template <class ConnectionHelper, class TLSConnectionImpl>
 bool
-HttpsEndpoint::make_request(
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::make_request(
   stx::string_view method,
   stx::string_view path,
-  const HttpsEndpoint::HeaderMapView& extra_headers,
+  const HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::HeaderMapView& extra_headers,
   stx::string_view req_body,
   ResponseCallback process_resp_body
 )
@@ -294,8 +296,9 @@ HttpsEndpoint::make_request(
   );
 }
 
+template <class ConnectionHelper, class TLSConnectionImpl>
 bool
-HttpsEndpoint::make_request(
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::make_request(
   stx::string_view method,
   stx::string_view path,
   stx::string_view req_body,
@@ -306,31 +309,34 @@ HttpsEndpoint::make_request(
 }
 
 // Optional request body
+template <class ConnectionHelper, class TLSConnectionImpl>
 bool
-HttpsEndpoint::make_request(
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::make_request(
   stx::string_view method,
   stx::string_view path,
-  const HttpsEndpoint::QueryMapView& extra_query_params,
-  const HttpsEndpoint::HeaderMapView& extra_headers,
+  const HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::QueryMapView& extra_query_params,
+  const HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::HeaderMapView& extra_headers,
   ResponseCallback process_resp_body
 )
 {
   return make_request(method, path, {}, extra_headers, "", process_resp_body);
 }
 
+template <class ConnectionHelper, class TLSConnectionImpl>
 bool
-HttpsEndpoint::make_request(
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::make_request(
   stx::string_view method,
   stx::string_view path,
-  const HttpsEndpoint::HeaderMapView& extra_headers,
+  const HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::HeaderMapView& extra_headers,
   ResponseCallback process_resp_body
 )
 {
   return make_request(method, path, {}, extra_headers, "", process_resp_body);
 }
 
+template <class ConnectionHelper, class TLSConnectionImpl>
 bool
-HttpsEndpoint::make_request(
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::make_request(
   stx::string_view method,
   stx::string_view path,
   ResponseCallback process_resp_body
@@ -339,8 +345,9 @@ HttpsEndpoint::make_request(
   return make_request(method, path, {}, {}, "", process_resp_body);
 }
 
+template <class ConnectionHelper, class TLSConnectionImpl>
 bool
-HttpsEndpoint::make_request(
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::make_request(
   stx::string_view path,
   ResponseCallback process_resp_body
 )
@@ -348,28 +355,32 @@ HttpsEndpoint::make_request(
   return make_request("GET", path, {}, {}, "", process_resp_body);
 }
 
+template <class ConnectionHelper, class TLSConnectionImpl>
 bool
-HttpsEndpoint::add_query_param(stx::string_view k, stx::string_view v)
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::add_query_param(stx::string_view k, stx::string_view v)
 {
   query_params[std::string(k)] = std::string(v);
   return true;
 }
 
+template <class ConnectionHelper, class TLSConnectionImpl>
 bool
-HttpsEndpoint::has_query_param(stx::string_view k)
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::has_query_param(stx::string_view k)
 {
   return query_params.find(std::string(k)) != query_params.end();
 }
 
+template <class ConnectionHelper, class TLSConnectionImpl>
 bool
-HttpsEndpoint::add_header(stx::string_view k, stx::string_view v)
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::add_header(stx::string_view k, stx::string_view v)
 {
   headers[std::string(k)] = std::string(v);
   return true;
 }
 
+template <class ConnectionHelper, class TLSConnectionImpl>
 bool
-HttpsEndpoint::has_header(stx::string_view k)
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::has_header(stx::string_view k)
 {
   return headers.find(std::string(k)) != headers.end();
 }

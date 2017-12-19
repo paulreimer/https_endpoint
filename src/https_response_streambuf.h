@@ -9,19 +9,20 @@
  */
 #pragma once
 
-#include "tls_connection_interface.h"
-
 #include <streambuf>
 #include <vector>
 
+template <class TLSConnectionImpl>
 class HttpsResponseStreambuf
 : public std::streambuf
 {
 public:
   explicit HttpsResponseStreambuf(
-    TLSConnectionInterface* _conn,
+    TLSConnectionImpl& _conn,
     size_t _len=512,
     size_t _put_back_len=8);
+
+  static constexpr char TAG[] = "HttpsResponseStreambuf";
 
 private:
   // overrides base class underflow()
@@ -33,7 +34,9 @@ private:
   HttpsResponseStreambuf &operator= (const HttpsResponseStreambuf &);
 
 private:
-  TLSConnectionInterface* conn;
+  TLSConnectionImpl& conn;
   const std::size_t put_back_len;
   std::vector<char> buffer;
 };
+
+#include "https_response_streambuf_impl.h"

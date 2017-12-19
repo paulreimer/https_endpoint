@@ -46,14 +46,16 @@ public:
   MAKE_MOCK1(read, int(stx::string_view), override);
 };
 
+// Explicit template instantiation of mocked class
+template class HttpsEndpointAutoConnect<TLSConnectionMock>;
+
 TEST_CASE("Does TLSConnection lifecycle")
 {
-  std::unique_ptr<TLSConnectionInterface> _conn = std::make_unique<TLSConnectionMock>();
-  TLSConnectionMock& conn(*reinterpret_cast<TLSConnectionMock*>(_conn.get()));
+  TLSConnectionMock conn{};
 
   REQUIRE_CALL(conn, initialize("www.example.org", 443, "<pem>"))
     .RETURN(true)
     .TIMES(1);
 
-  HttpsEndpoint(std::move(_conn), "www.example.org", 443, "<pem>");
+  HttpsEndpointAutoConnect<TLSConnectionMock>(conn, "www.example.org", 443, "<pem>");
 }
