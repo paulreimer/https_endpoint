@@ -1,17 +1,3 @@
-config("compiler_defaults") {
-  if (current_os == "linux") {
-    cflags = [
-      "-fPIC",
-      "-pthread",
-    ]
-  }
-}
-
-config("executable_ldconfig") {
-  ldflags = [
-  ]
-}
-
 executable("test_runner") {
 
   defines = [

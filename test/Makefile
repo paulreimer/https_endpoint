@@ -1,4 +1,4 @@
-out/Default: .gn BUILD.gn build/BUILDCONFIG.gn build/toolchain/BUILD.gn
+out/Default: .gn BUILD.gn build/BUILDCONFIG.gn build/BUILD.gn
 	gn gen out/Default
 
 .PHONY: test_runner
