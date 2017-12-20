@@ -9,3 +9,7 @@ test_runner: out/Default
 .PHONY: test
 test: test_runner
 	@./test_runner
+
+.PHONY: test
+clean:
+	rm -rf out
