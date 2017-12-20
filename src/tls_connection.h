@@ -11,12 +11,6 @@
 
 #include "stx/string_view.hpp"
 
-#include "lwip/dns.h"
-#include "lwip/err.h"
-#include "lwip/netdb.h"
-#include "lwip/sockets.h"
-#include "lwip/sys.h"
-
 #include "mbedtls/certs.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/entropy.h"
@@ -24,7 +18,6 @@
 #include "mbedtls/net.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/ssl.h"
-#include "mbedtls/esp_debug.h"
 
 class TLSConnection
 {

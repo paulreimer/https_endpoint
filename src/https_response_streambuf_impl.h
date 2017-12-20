@@ -14,13 +14,9 @@
 #include <algorithm>
 #include <cstring>
 
-#ifndef ESP_LOGI
 #include "esp_log.h"
-#endif
 
-#ifndef MBEDTLS_ERR_SSL_WANT_READ
 #include "mbedtls/ssl.h"
-#endif
 
 using std::size_t;
 

@@ -9,13 +9,9 @@
  */
 #include "https_endpoint.h"
 
-#ifndef ESP_LOGI
 #include "esp_log.h"
-#endif
 
-#ifndef MBEDTLS_ERR_SSL_WANT_READ
 #include "mbedtls/ssl.h"
-#endif
 
 #include <string.h>
 
