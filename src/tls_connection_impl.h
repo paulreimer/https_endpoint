@@ -493,7 +493,7 @@ TLSConnection::_connect()
 {
   //auto port_str = std::to_string(port);
   char port_str_c_str[6];
-  itoa(port, port_str_c_str, 10);
+  snprintf(port_str_c_str, sizeof(port_str_c_str), "%d", port);
 
   auto ret = mbedtls_net_connect(
     &server_fd,
