@@ -108,5 +108,3 @@ private:
 public:
   bool tls_print_error(int ret);
 };
-
-#include "tls_connection_impl.h"

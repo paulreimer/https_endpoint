@@ -69,4 +69,4 @@ private:
   FlatbuffersStreamingJsonParser oidc_parser;
 };
 
-#include "id_token_protected_endpoint_impl.h"
+#include "id_token_protected_endpoint.inl"

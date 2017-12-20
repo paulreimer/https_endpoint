@@ -164,4 +164,4 @@ public:
   }
 };
 
-#include "https_endpoint_impl.h"
+#include "https_endpoint.inl"

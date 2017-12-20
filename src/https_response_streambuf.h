@@ -39,4 +39,4 @@ private:
   std::vector<char> buffer;
 };
 
-#include "https_response_streambuf_impl.h"
+#include "https_response_streambuf.inl"
