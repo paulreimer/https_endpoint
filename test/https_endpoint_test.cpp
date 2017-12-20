@@ -10,40 +10,38 @@
 #include "test_runner.h"
 
 #include "../src/https_endpoint.h"
-#include "../src/tls_connection_interface.h"
 
 // This regex roughly worked to turn C++ class into MAKE_MOCKx() definitions
 // Removing the argument names and selecting the correct MACK_MOCKx is needed
-// :'<,'>s/virtual \([^ ]\+\) \([^(]\+\)(\([^(]*\)) = 0;/MAKE_MOCK0(\2, \1(\3), override);/
+// :'<,'>s/virtual \([^ ]\+\) \([^(]\+\)(\([^(]*\)) = 0;/MAKE_MOCK0(\2, \1(\3));/
 class TLSConnectionMock
-: public TLSConnectionInterface
 {
 public:
-  MAKE_MOCK3(initialize, bool(stx::string_view, unsigned short, stx::string_view), override);
+  MAKE_MOCK3(initialize, bool(stx::string_view, unsigned short, stx::string_view));
 
-  MAKE_MOCK0(init, bool(), override);
-  MAKE_MOCK0(clear, bool(), override);
+  MAKE_MOCK0(init, bool());
+  MAKE_MOCK0(clear, bool());
 
-  MAKE_MOCK0(ready, bool(), override);
-  MAKE_MOCK0(connected, bool(), override);
+  MAKE_MOCK0(ready, bool());
+  MAKE_MOCK0(connected, bool());
 
-  MAKE_MOCK0(store_session, bool(), override);
-  MAKE_MOCK0(clear_session, bool(), override);
-  MAKE_MOCK0(has_valid_session, bool(), override);
+  MAKE_MOCK0(store_session, bool());
+  MAKE_MOCK0(clear_session, bool());
+  MAKE_MOCK0(has_valid_session, bool());
 
-  MAKE_MOCK1(set_verification_level, bool(int), override);
-  MAKE_MOCK0(get_verification_level, int(), override);
+  MAKE_MOCK1(set_verification_level, bool(int));
+  MAKE_MOCK0(get_verification_level, int());
 
-  MAKE_MOCK2(set_cacert, bool(stx::string_view, bool), override);
-  MAKE_MOCK0(clear_cacert, bool(), override);
-  MAKE_MOCK0(has_valid_cacert, bool(), override);
+  MAKE_MOCK2(set_cacert, bool(stx::string_view, bool));
+  MAKE_MOCK0(clear_cacert, bool());
+  MAKE_MOCK0(has_valid_cacert, bool());
 
-  MAKE_MOCK2(connect, bool(stx::string_view, unsigned short), override);
-  MAKE_MOCK0(reconnect, bool(), override);
-  MAKE_MOCK0(disconnect, bool(), override);
+  MAKE_MOCK2(connect, bool(stx::string_view, unsigned short));
+  MAKE_MOCK0(reconnect, bool());
+  MAKE_MOCK0(disconnect, bool());
 
-  MAKE_MOCK1(write, int(stx::string_view), override);
-  MAKE_MOCK1(read, int(stx::string_view), override);
+  MAKE_MOCK1(write, int(stx::string_view));
+  MAKE_MOCK1(read, int(stx::string_view));
 };
 
 // Explicit template instantiation of mocked class
