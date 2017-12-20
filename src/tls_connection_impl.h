@@ -15,7 +15,6 @@
 #include <cstring>
 
 #include "esp_log.h"
-#include "esp_heap_caps.h"
 
 TLSConnection::TLSConnection(
   stx::string_view _host,
@@ -431,15 +430,9 @@ TLSConnection::disconnect()
 {
   if (_connected)
   {
-    if (&ssl)
-    {
-      mbedtls_ssl_close_notify(&ssl);
-    }
+    mbedtls_ssl_close_notify(&ssl);
 
-    if (&server_fd)
-    {
-      mbedtls_net_free(&server_fd);
-    }
+    mbedtls_net_free(&server_fd);
 
     _connected = false;
     _verified = false;
