@@ -47,4 +47,7 @@ $(COMPONENT_PATH)/src/%_generated.h: $(COMPONENT_PATH)/src/%.fbs
 $(COMPONENT_PATH)/src/%.bfbs: $(COMPONENT_PATH)/src/%.fbs
 	flatc --binary --schema -o $(COMPONENT_PATH)/src $^
 
-flatbuffers/src/idl_parser.o: CXXFLAGS += -Wno-maybe-uninitialized -Wno-type-limits
+flatbuffers/src/idl_parser.o: CXXFLAGS += \
+	-Wno-maybe-uninitialized \
+	-Wno-type-limits \
+	-DM_PI=3.14159265358979323846
