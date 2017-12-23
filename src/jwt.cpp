@@ -37,7 +37,7 @@ esp32_gen_random_bytes(void *ctx, unsigned char *buf, size_t len)
   return 0;
 }
 
-JWT::JWT(stx::string_view privkey_pem, Alg _alg)
+JWT::JWT(std::experimental::string_view privkey_pem, Alg _alg)
 : alg(_alg)
 {
   mbedtls_pk_init(&ctx);
@@ -79,7 +79,7 @@ JWT::~JWT()
 }
 
 std::string
-JWT::mint(stx::string_view payload)
+JWT::mint(std::experimental::string_view payload)
 {
   std::stringstream jwt;
 
@@ -106,7 +106,7 @@ JWT::mint(stx::string_view payload)
 }
 
 std::string
-JWT::sign(stx::string_view jwt_header_and_payload)
+JWT::sign(std::experimental::string_view jwt_header_and_payload)
 {
   // Only supporting RS256 for now
   switch (alg)
@@ -128,7 +128,7 @@ JWT::sign(stx::string_view jwt_header_and_payload)
 }
 
 std::string
-JWT::sign_RS256(stx::string_view jwt_header_and_payload)
+JWT::sign_RS256(std::experimental::string_view jwt_header_and_payload)
 {
   std::string signature;
 

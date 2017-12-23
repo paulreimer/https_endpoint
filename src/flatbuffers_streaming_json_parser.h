@@ -16,8 +16,8 @@
 
 #undef STRUCT_END
 
-#include "stx/optional.hpp"
-#include "stx/string_view.hpp"
+#include <experimental/optional>
+#include <experimental/string_view>
 
 #include "esp_log.h"
 
@@ -27,8 +27,8 @@ class FlatbuffersStreamingJsonParser
 {
 public:
   FlatbuffersStreamingJsonParser(
-    stx::string_view text_schema,
-    stx::string_view binary_schema
+    std::experimental::string_view text_schema,
+    std::experimental::string_view binary_schema
   );
 
   // do include space for null terminating byte
@@ -42,7 +42,7 @@ public:
   const reflection::Object* get_flatbuffers_root_table() const;
 
   template<typename ObjT>
-  stx::optional<ObjT>
+  std::experimental::optional<ObjT>
   parse(const std::string& json)
   {
     bool ok = is_ready();
@@ -63,7 +63,7 @@ public:
         {
           // Parse if possible, return whether it was successful
           return FlatbuffersParser::parse<ObjT>(
-            stx::string_view(
+            std::experimental::string_view(
               reinterpret_cast<const char*>(
                 flatbuffers_parser.builder_.GetBufferPointer()
               ),
@@ -90,12 +90,12 @@ public:
       ESP_LOGE(TAG, "Parser not ready");
     }
 
-    return stx::nullopt;
+    return std::experimental::nullopt;
   }
 
 private:
-  bool parse_flatbuffers_text_schema(stx::string_view buf);
-  bool parse_flatbuffers_binary_schema(stx::string_view buf);
+  bool parse_flatbuffers_text_schema(std::experimental::string_view buf);
+  bool parse_flatbuffers_binary_schema(std::experimental::string_view buf);
 
   bool did_parse_text_schema = false;
   bool did_parse_binary_schema = false;

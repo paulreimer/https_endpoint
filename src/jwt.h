@@ -11,7 +11,7 @@
 
 #include "mbedtls/pk.h"
 
-#include "stx/string_view.hpp"
+#include <experimental/string_view>
 
 class JWT
 {
@@ -22,7 +22,7 @@ public:
     ES256, // Not supported
   };
 
-  JWT(stx::string_view privkey_pem, Alg _alg=RS256);
+  JWT(std::experimental::string_view privkey_pem, Alg _alg=RS256);
 
   ~JWT();
 
@@ -30,12 +30,12 @@ public:
 
   Alg alg = RS256;
 
-  std::string mint(stx::string_view payload);
-  std::string sign(stx::string_view jwt_header_and_payload);
+  std::string mint(std::experimental::string_view payload);
+  std::string sign(std::experimental::string_view jwt_header_and_payload);
   bool verify();
 
 private:
-  std::string sign_RS256(stx::string_view jwt_header_and_payload);
+  std::string sign_RS256(std::experimental::string_view jwt_header_and_payload);
 
   mbedtls_pk_context ctx;
   bool valid = false;

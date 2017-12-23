@@ -17,9 +17,9 @@
 #include "esp_log.h"
 
 TLSConnection::TLSConnection(
-  stx::string_view _host,
+  std::experimental::string_view _host,
   unsigned short _port,
-  stx::string_view _cacert_pem
+  std::experimental::string_view _cacert_pem
 )
 {
   initialize(_host, _port, _cacert_pem);
@@ -32,9 +32,9 @@ TLSConnection::~TLSConnection()
 
 bool
 TLSConnection::initialize(
-  stx::string_view _host,
+  std::experimental::string_view _host,
   unsigned short _port,
-  stx::string_view _cacert_pem
+  std::experimental::string_view _cacert_pem
 )
 {
   // Update our cached state
@@ -192,7 +192,7 @@ TLSConnection::get_verification_level()
 
 bool
 TLSConnection::set_cacert(
-  stx::string_view _cacert_pem,
+  std::experimental::string_view _cacert_pem,
   bool force_disconnect
 )
 {
@@ -293,7 +293,7 @@ TLSConnection::_ensure_initialized()
 
 bool
 TLSConnection::_ensure_connected(
-  stx::string_view _host,
+  std::experimental::string_view _host,
   unsigned short _port
 )
 {
@@ -327,7 +327,7 @@ TLSConnection::_ensure_connected(
 
 bool
 TLSConnection::connect(
-  stx::string_view _host,
+  std::experimental::string_view _host,
   unsigned short _port
 )
 {
@@ -442,7 +442,7 @@ TLSConnection::disconnect()
 }
 
 int
-TLSConnection::write(stx::string_view buf)
+TLSConnection::write(std::experimental::string_view buf)
 {
   if (connected())
   {
@@ -457,7 +457,7 @@ TLSConnection::write(stx::string_view buf)
 }
 
 int
-TLSConnection::read(stx::string_view buf)
+TLSConnection::read(std::experimental::string_view buf)
 {
   if (connected())
   {

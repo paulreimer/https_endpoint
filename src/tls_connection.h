@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "stx/string_view.hpp"
+#include <experimental/string_view>
 
 #include "mbedtls/certs.h"
 #include "mbedtls/ctr_drbg.h"
@@ -25,17 +25,17 @@ public:
   TLSConnection() = default;
 
   TLSConnection(
-    stx::string_view _host,
+    std::experimental::string_view _host,
     unsigned short _port,
-    stx::string_view _cacert_pem
+    std::experimental::string_view _cacert_pem
   );
 
   ~TLSConnection();
 
   bool initialize(
-    stx::string_view _host,
+    std::experimental::string_view _host,
     unsigned short _port=443,
-    stx::string_view _cacert_pem=""
+    std::experimental::string_view _cacert_pem=""
   );
 
   bool init();
@@ -53,22 +53,22 @@ public:
   bool verify();
 
   bool set_cacert(
-    stx::string_view _cacert_pem,
+    std::experimental::string_view _cacert_pem,
     bool force_disconnect=true
   );
   bool clear_cacert();
   bool has_valid_cacert();
 
   bool connect(
-    stx::string_view _host,
+    std::experimental::string_view _host,
     unsigned short _port
   );
 
   bool reconnect();
   bool disconnect();
 
-  int write(stx::string_view buf);
-  int read(stx::string_view buf);
+  int write(std::experimental::string_view buf);
+  int read(std::experimental::string_view buf);
 
 protected:
   std::string host;
@@ -80,7 +80,7 @@ protected:
 private:
   bool _ensure_initialized();
   bool _ensure_connected(
-    stx::string_view _host,
+    std::experimental::string_view _host,
     unsigned short _port
   );
   bool _connect();

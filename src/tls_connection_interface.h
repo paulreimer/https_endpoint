@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "stx/string_view.hpp"
+#include <experimental/string_view>
 
 class TLSConnectionInterface
 {
@@ -17,9 +17,9 @@ public:
   virtual ~TLSConnectionInterface() = default;
 
   virtual bool initialize(
-    stx::string_view _host,
+    std::experimental::string_view _host,
     unsigned short _port=443,
-    stx::string_view _cacert_pem=""
+    std::experimental::string_view _cacert_pem=""
   ) = 0;
 
   virtual bool init() = 0;
@@ -36,20 +36,20 @@ public:
   virtual int get_verification_level() = 0;
 
   virtual bool set_cacert(
-    stx::string_view cacert_pem,
+    std::experimental::string_view cacert_pem,
     bool force_disconnect=true
   ) = 0;
   virtual bool clear_cacert() = 0;
   virtual bool has_valid_cacert() = 0;
 
   virtual bool connect(
-    stx::string_view _host,
+    std::experimental::string_view _host,
     unsigned short _port=443
   ) = 0;
 
   virtual bool reconnect() = 0;
   virtual bool disconnect() = 0;
 
-  virtual int write(stx::string_view buf) = 0;
-  virtual int read(stx::string_view buf) = 0;
+  virtual int write(std::experimental::string_view buf) = 0;
+  virtual int read(std::experimental::string_view buf) = 0;
 };

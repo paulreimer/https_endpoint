@@ -9,7 +9,7 @@
  */
 #include "https_response_streambuf.h"
 
-#include "stx/string_view.hpp"
+#include <experimental/string_view>
 
 #include <algorithm>
 #include <cstring>
@@ -57,7 +57,7 @@ HttpsResponseStreambuf<TLSConnectionImpl>::underflow()
   }
 
   // Start is now the start of the buffer, proper.
-  int ret = conn.read(stx::string_view(start, buffer.size() - (start - base)));
+  int ret = conn.read(std::experimental::string_view(start, buffer.size() - (start - base)));
   if (ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE)
   {
     // this is fine, treat it as reading nothing

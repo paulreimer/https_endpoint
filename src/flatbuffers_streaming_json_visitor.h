@@ -19,7 +19,7 @@
 // simple output to JSON string:
 #include "flatbuffers/minireflect.h"
 
-#include "stx/string_view.hpp"
+#include <experimental/string_view>
 
 #include "delegate.hpp"
 
@@ -31,8 +31,8 @@
 
 inline bool
 equality_or_wildcard(
-  stx::string_view root,
-  stx::string_view current
+  std::experimental::string_view root,
+  std::experimental::string_view current
 );
 
 inline bool
@@ -496,8 +496,8 @@ public:
 
 inline bool
 equality_or_wildcard(
-  stx::string_view root,
-  stx::string_view current)
+  std::experimental::string_view root,
+  std::experimental::string_view current)
 {
   constexpr char wildcard_sym[] = "*";
   return ((root == wildcard_sym) || (root == current));

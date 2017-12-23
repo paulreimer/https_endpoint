@@ -9,8 +9,8 @@
  */
 #pragma once
 
-#include "stx/optional.hpp"
-#include "stx/string_view.hpp"
+#include <experimental/optional>
+#include <experimental/string_view>
 
 #include "esp_log.h"
 
@@ -19,8 +19,8 @@ namespace FlatbuffersParser {
 constexpr char TAG[] = "FlatbuffersParser";
 
 template <typename ObjT>
-stx::optional<ObjT>
-parse(stx::string_view buf)
+std::experimental::optional<ObjT>
+parse(std::experimental::string_view buf)
 {
   // Verify the buffer data before doing anything
   flatbuffers::Verifier verifier(
@@ -52,11 +52,11 @@ parse(stx::string_view buf)
     );
   }
 
-  return stx::nullopt;
+  return std::experimental::nullopt;
 };
 
 template <typename ObjT>
-stx::optional<ObjT>
+std::experimental::optional<ObjT>
 parse_from_stream(std::istream& stream)
 {
   // Read entire response into string

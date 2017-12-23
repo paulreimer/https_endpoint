@@ -9,20 +9,20 @@
  */
 #pragma once
 
-#include "stx/string_view.hpp"
+#include <experimental/string_view>
 
 class UriParser
 {
 public:
-  UriParser(stx::string_view unparsed_uri);
+  UriParser(std::experimental::string_view unparsed_uri);
 
-  stx::string_view scheme;
-  stx::string_view user;
-  stx::string_view password;
-  stx::string_view host;
+  std::experimental::string_view scheme;
+  std::experimental::string_view user;
+  std::experimental::string_view password;
+  std::experimental::string_view host;
   short port = -1;
-  stx::string_view path;
-  stx::string_view query;
-  stx::string_view fragment;
-  stx::string_view request_uri; // path?query#fragment
+  std::experimental::string_view path;
+  std::experimental::string_view query;
+  std::experimental::string_view fragment;
+  std::experimental::string_view request_uri; // path?query#fragment
 };

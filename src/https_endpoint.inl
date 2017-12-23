@@ -20,9 +20,9 @@
 template <class ConnectionHelper, class TLSConnectionImpl>
 HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::HttpsEndpoint(
   TLSConnectionImpl& _conn,
-  stx::string_view _host,
+  std::experimental::string_view _host,
   const unsigned short _port,
-  stx::string_view _cacert_pem
+  std::experimental::string_view _cacert_pem
 )
 : conn(_conn)
 {
@@ -40,8 +40,8 @@ HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::HttpsEndpoint(
 template <class ConnectionHelper, class TLSConnectionImpl>
 HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::HttpsEndpoint(
   TLSConnectionImpl& _conn,
-  stx::string_view _host,
-  stx::string_view _cacert_pem
+  std::experimental::string_view _host,
+  std::experimental::string_view _cacert_pem
 )
 : HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::HttpsEndpoint(_conn, _host, 443, _cacert_pem)
 {}
@@ -53,9 +53,9 @@ HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::~HttpsEndpoint()
 template <class ConnectionHelper, class TLSConnectionImpl>
 bool
 HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::connect(
-  stx::string_view _host,
+  std::experimental::string_view _host,
   const unsigned short _port,
-  stx::string_view _cacert_pem
+  std::experimental::string_view _cacert_pem
 )
 {
   // Update cacert_pem and then connect
@@ -70,8 +70,8 @@ HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::connect(
 template <class ConnectionHelper, class TLSConnectionImpl>
 bool
 HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::connect(
-  stx::string_view _host,
-  stx::string_view _cacert_pem
+  std::experimental::string_view _host,
+  std::experimental::string_view _cacert_pem
 )
 {
   return this->connect(_host, 443, _cacert_pem);
@@ -80,7 +80,7 @@ HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::connect(
 template <class ConnectionHelper, class TLSConnectionImpl>
 bool
 HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::connect(
-  stx::string_view _host,
+  std::experimental::string_view _host,
   const unsigned short _port
 )
 {
@@ -107,11 +107,11 @@ HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::ensure_connected()
 template <class ConnectionHelper, class TLSConnectionImpl>
 std::string
 HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::generate_request(
-  stx::string_view method,
-  stx::string_view path,
+  std::experimental::string_view method,
+  std::experimental::string_view path,
   const HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::QueryMapView& extra_query_params,
   const HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::HeaderMapView& extra_headers,
-  stx::string_view req_body
+  std::experimental::string_view req_body
 )
 {
   std::stringstream http_req;
@@ -182,11 +182,11 @@ HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::generate_request(
 template <class ConnectionHelper, class TLSConnectionImpl>
 bool
 HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::make_request(
-  stx::string_view method,
-  stx::string_view path,
+  std::experimental::string_view method,
+  std::experimental::string_view path,
   const HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::QueryMapView& extra_query_params,
   const HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::HeaderMapView& extra_headers,
-  stx::string_view req_body,
+  std::experimental::string_view req_body,
   ResponseCallback process_resp_body
 )
 {
@@ -198,7 +198,7 @@ HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::make_request(
     (int)path.size(), path.data()
   );
 
-  //stx::string_view req_str(http_req.str());
+  //std::experimental::string_view req_str(http_req.str());
   std::string req_str(
     generate_request(
       method, path, extra_query_params, extra_headers, req_body
@@ -277,10 +277,10 @@ HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::make_request(
 template <class ConnectionHelper, class TLSConnectionImpl>
 bool
 HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::make_request(
-  stx::string_view method,
-  stx::string_view path,
+  std::experimental::string_view method,
+  std::experimental::string_view path,
   const HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::HeaderMapView& extra_headers,
-  stx::string_view req_body,
+  std::experimental::string_view req_body,
   ResponseCallback process_resp_body
 )
 {
@@ -295,9 +295,9 @@ HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::make_request(
 template <class ConnectionHelper, class TLSConnectionImpl>
 bool
 HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::make_request(
-  stx::string_view method,
-  stx::string_view path,
-  stx::string_view req_body,
+  std::experimental::string_view method,
+  std::experimental::string_view path,
+  std::experimental::string_view req_body,
   ResponseCallback process_resp_body
 )
 {
@@ -308,8 +308,8 @@ HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::make_request(
 template <class ConnectionHelper, class TLSConnectionImpl>
 bool
 HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::make_request(
-  stx::string_view method,
-  stx::string_view path,
+  std::experimental::string_view method,
+  std::experimental::string_view path,
   const HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::QueryMapView& extra_query_params,
   const HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::HeaderMapView& extra_headers,
   ResponseCallback process_resp_body
@@ -321,8 +321,8 @@ HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::make_request(
 template <class ConnectionHelper, class TLSConnectionImpl>
 bool
 HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::make_request(
-  stx::string_view method,
-  stx::string_view path,
+  std::experimental::string_view method,
+  std::experimental::string_view path,
   const HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::HeaderMapView& extra_headers,
   ResponseCallback process_resp_body
 )
@@ -333,8 +333,8 @@ HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::make_request(
 template <class ConnectionHelper, class TLSConnectionImpl>
 bool
 HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::make_request(
-  stx::string_view method,
-  stx::string_view path,
+  std::experimental::string_view method,
+  std::experimental::string_view path,
   ResponseCallback process_resp_body
 )
 {
@@ -344,7 +344,7 @@ HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::make_request(
 template <class ConnectionHelper, class TLSConnectionImpl>
 bool
 HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::make_request(
-  stx::string_view path,
+  std::experimental::string_view path,
   ResponseCallback process_resp_body
 )
 {
@@ -353,7 +353,7 @@ HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::make_request(
 
 template <class ConnectionHelper, class TLSConnectionImpl>
 bool
-HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::add_query_param(stx::string_view k, stx::string_view v)
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::add_query_param(std::experimental::string_view k, std::experimental::string_view v)
 {
   query_params[std::string(k)] = std::string(v);
   return true;
@@ -361,14 +361,14 @@ HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::add_query_param(stx::string_
 
 template <class ConnectionHelper, class TLSConnectionImpl>
 bool
-HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::has_query_param(stx::string_view k)
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::has_query_param(std::experimental::string_view k)
 {
   return query_params.find(std::string(k)) != query_params.end();
 }
 
 template <class ConnectionHelper, class TLSConnectionImpl>
 bool
-HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::add_header(stx::string_view k, stx::string_view v)
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::add_header(std::experimental::string_view k, std::experimental::string_view v)
 {
   headers[std::string(k)] = std::string(v);
   return true;
@@ -376,7 +376,7 @@ HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::add_header(stx::string_view 
 
 template <class ConnectionHelper, class TLSConnectionImpl>
 bool
-HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::has_header(stx::string_view k)
+HttpsEndpoint<ConnectionHelper, TLSConnectionImpl>::has_header(std::experimental::string_view k)
 {
   return headers.find(std::string(k)) != headers.end();
 }

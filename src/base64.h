@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "stx/string_view.hpp"
+#include <experimental/string_view>
 
 #include <string>
 
@@ -23,7 +23,7 @@ namespace base64
     #include "b64/cdecode.h"
   }
 
-  std::string encode(stx::string_view in)
+  std::string encode(std::experimental::string_view in)
   {
     std::string out;
 
@@ -49,7 +49,7 @@ namespace base64
     return out;
   }
 
-  std::string decode(stx::string_view in)
+  std::string decode(std::experimental::string_view in)
   {
     std::string out;
 

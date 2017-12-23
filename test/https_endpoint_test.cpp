@@ -17,7 +17,7 @@
 class TLSConnectionMock
 {
 public:
-  MAKE_MOCK3(initialize, bool(stx::string_view, unsigned short, stx::string_view));
+  MAKE_MOCK3(initialize, bool(std::experimental::string_view, unsigned short, std::experimental::string_view));
 
   MAKE_MOCK0(init, bool());
   MAKE_MOCK0(clear, bool());
@@ -32,16 +32,16 @@ public:
   MAKE_MOCK1(set_verification_level, bool(int));
   MAKE_MOCK0(get_verification_level, int());
 
-  MAKE_MOCK2(set_cacert, bool(stx::string_view, bool));
+  MAKE_MOCK2(set_cacert, bool(std::experimental::string_view, bool));
   MAKE_MOCK0(clear_cacert, bool());
   MAKE_MOCK0(has_valid_cacert, bool());
 
-  MAKE_MOCK2(connect, bool(stx::string_view, unsigned short));
+  MAKE_MOCK2(connect, bool(std::experimental::string_view, unsigned short));
   MAKE_MOCK0(reconnect, bool());
   MAKE_MOCK0(disconnect, bool());
 
-  MAKE_MOCK1(write, int(stx::string_view));
-  MAKE_MOCK1(read, int(stx::string_view));
+  MAKE_MOCK1(write, int(std::experimental::string_view));
+  MAKE_MOCK1(read, int(std::experimental::string_view));
 };
 
 // Explicit template instantiation of mocked class

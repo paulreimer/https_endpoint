@@ -12,8 +12,8 @@
 constexpr char FlatbuffersStreamingJsonParser::TAG[];
 
 FlatbuffersStreamingJsonParser::FlatbuffersStreamingJsonParser(
-  stx::string_view text_schema,
-  stx::string_view binary_schema
+  std::experimental::string_view text_schema,
+  std::experimental::string_view binary_schema
 )
 {
   // Allow trailing commas, and optional quotes around identifiers/values
@@ -68,7 +68,7 @@ FlatbuffersStreamingJsonParser::get_flatbuffers_root_table() const
 
 bool
 FlatbuffersStreamingJsonParser::parse_flatbuffers_text_schema(
-  stx::string_view buf
+  std::experimental::string_view buf
 )
 {
   // Load flatbuffers text schema file from buffer
@@ -101,7 +101,7 @@ FlatbuffersStreamingJsonParser::parse_flatbuffers_text_schema(
 
 bool
 FlatbuffersStreamingJsonParser::parse_flatbuffers_binary_schema(
-  stx::string_view buf
+  std::experimental::string_view buf
 )
 {
   // Load flatbuffers text schema file from buffer

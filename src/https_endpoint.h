@@ -16,7 +16,7 @@
 #include <unordered_map>
 #include <sstream>
 
-#include "stx/string_view.hpp"
+#include <experimental/string_view>
 
 template <class ConnectionHelper, class TLSConnectionImpl>
 class HttpsEndpoint
@@ -24,21 +24,21 @@ class HttpsEndpoint
 public:
   HttpsEndpoint(
     TLSConnectionImpl& _conn,
-    stx::string_view _host,
+    std::experimental::string_view _host,
     const unsigned short _port,
-    stx::string_view _cacert_pem
+    std::experimental::string_view _cacert_pem
   );
 
   HttpsEndpoint(
     TLSConnectionImpl& _conn,
-    stx::string_view _host,
-    stx::string_view _cacert_pem
+    std::experimental::string_view _host,
+    std::experimental::string_view _cacert_pem
   );
 
   ~HttpsEndpoint();
 
-  typedef std::unordered_map<stx::string_view, stx::string_view> QueryMapView;
-  typedef std::unordered_map<stx::string_view, stx::string_view> HeaderMapView;
+  typedef std::unordered_map<std::experimental::string_view, std::experimental::string_view> QueryMapView;
+  typedef std::unordered_map<std::experimental::string_view, std::experimental::string_view> HeaderMapView;
 
   typedef std::unordered_map<std::string, std::string> QueryMap;
   typedef std::unordered_map<std::string, std::string> HeaderMap;
@@ -49,60 +49,60 @@ public:
   bool ensure_connected();
 
   bool connect(
-    stx::string_view _host,
+    std::experimental::string_view _host,
     const unsigned short _port,
-    stx::string_view _cacert_pem
+    std::experimental::string_view _cacert_pem
   );
 
   // Convenience method
   bool connect(
-    stx::string_view _host,
-    stx::string_view _cacert_pem
+    std::experimental::string_view _host,
+    std::experimental::string_view _cacert_pem
   );
 
   bool connect(
-    stx::string_view _host,
+    std::experimental::string_view _host,
     const unsigned short _port=443
   );
 
-  bool add_query_param(stx::string_view k, stx::string_view v);
-  bool has_query_param(stx::string_view k);
+  bool add_query_param(std::experimental::string_view k, std::experimental::string_view v);
+  bool has_query_param(std::experimental::string_view k);
 
-  bool add_header(stx::string_view k, stx::string_view v);
-  bool has_header(stx::string_view k);
+  bool add_header(std::experimental::string_view k, std::experimental::string_view v);
+  bool has_header(std::experimental::string_view k);
 
   // Main request call, others are shortcuts to this
   bool make_request(
-    stx::string_view method,
-    stx::string_view path,
+    std::experimental::string_view method,
+    std::experimental::string_view path,
     const QueryMapView& extra_query_params,
     const HeaderMapView& extra_headers,
-    stx::string_view req_body="",
+    std::experimental::string_view req_body="",
     ResponseCallback process_resp_body=nullptr
   );
 
   // Convenient accessors to make_request():
   // (no query string)
   bool make_request(
-    stx::string_view method,
-    stx::string_view path,
+    std::experimental::string_view method,
+    std::experimental::string_view path,
     const HeaderMapView& extra_headers,
-    stx::string_view req_body="",
+    std::experimental::string_view req_body="",
     ResponseCallback process_resp_body=nullptr
   );
 
   // (no query string and no headers)
   bool make_request(
-    stx::string_view method,
-    stx::string_view path,
-    stx::string_view req_body="",
+    std::experimental::string_view method,
+    std::experimental::string_view path,
+    std::experimental::string_view req_body="",
     ResponseCallback process_resp_body=nullptr
   );
 
   // (no request body)
   bool make_request(
-    stx::string_view method,
-    stx::string_view path,
+    std::experimental::string_view method,
+    std::experimental::string_view path,
     const QueryMapView& extra_query_params,
     const HeaderMapView& extra_headers,
     ResponseCallback process_resp_body=nullptr
@@ -110,32 +110,32 @@ public:
 
   // (no query string and no request body)
   bool make_request(
-    stx::string_view method,
-    stx::string_view path,
+    std::experimental::string_view method,
+    std::experimental::string_view path,
     const HeaderMapView& extra_headers,
     ResponseCallback process_resp_body=nullptr
   );
 
   // (no query string, no request body, and no headers)
   bool make_request(
-    stx::string_view method,
-    stx::string_view path,
+    std::experimental::string_view method,
+    std::experimental::string_view path,
     ResponseCallback process_resp_body=nullptr
   );
 
   // (GET-only, no query string, no request body, and no headers)
   bool make_request(
-    stx::string_view path,
+    std::experimental::string_view path,
     ResponseCallback process_resp_body=nullptr
   );
 
 protected:
   std::string generate_request(
-    stx::string_view method,
-    stx::string_view path,
+    std::experimental::string_view method,
+    std::experimental::string_view path,
     const QueryMapView& extra_query_params,
     const HeaderMapView& extra_headers,
-    stx::string_view req_body=""
+    std::experimental::string_view req_body=""
   );
 
   const char* TAG = nullptr;

@@ -13,7 +13,7 @@
 
 // A generic URI is of the form:
 // scheme:[//[user[:password]@]host[:port]][/path][?query][#fragment]
-UriParser::UriParser(stx::string_view unparsed_uri)
+UriParser::UriParser(std::experimental::string_view unparsed_uri)
 {
   std::string delim;
   int delim_pos;

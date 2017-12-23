@@ -17,14 +17,14 @@
 template <class TLSConnectionImpl>
 IdTokenProtectedEndpoint<TLSConnectionImpl>::IdTokenProtectedEndpoint(
   TLSConnectionImpl& _conn,
-  stx::string_view _host,
+  std::experimental::string_view _host,
   const unsigned short _port,
-  stx::string_view _cacert_pem,
+  std::experimental::string_view _cacert_pem,
   TLSConnectionImpl& _id_token_conn,
-  stx::string_view _id_token_host,
+  std::experimental::string_view _id_token_host,
   const unsigned short _id_token_port,
-  stx::string_view _id_token_cacert_pem,
-  stx::string_view _refresh_token
+  std::experimental::string_view _id_token_cacert_pem,
+  std::experimental::string_view _refresh_token
 )
 : HttpsEndpoint<IdTokenProtectedEndpoint<TLSConnectionImpl>, TLSConnectionImpl>(
     _conn,
@@ -46,12 +46,12 @@ IdTokenProtectedEndpoint<TLSConnectionImpl>::IdTokenProtectedEndpoint(
 template <class TLSConnectionImpl>
 IdTokenProtectedEndpoint<TLSConnectionImpl>::IdTokenProtectedEndpoint(
   TLSConnectionImpl& _conn,
-  stx::string_view _host,
-  stx::string_view _cacert_pem,
+  std::experimental::string_view _host,
+  std::experimental::string_view _cacert_pem,
   TLSConnectionImpl& _id_token_conn,
-  stx::string_view _id_token_host,
-  stx::string_view _id_token_cacert_pem,
-  stx::string_view _refresh_token
+  std::experimental::string_view _id_token_host,
+  std::experimental::string_view _id_token_cacert_pem,
+  std::experimental::string_view _refresh_token
 )
 : IdTokenProtectedEndpoint<TLSConnectionImpl>(
     _conn,
@@ -79,7 +79,7 @@ IdTokenProtectedEndpoint<TLSConnectionImpl>::ensure_connected()
 
 template <class TLSConnectionImpl>
 bool
-IdTokenProtectedEndpoint<TLSConnectionImpl>::set_refresh_token(stx::string_view _refresh_token)
+IdTokenProtectedEndpoint<TLSConnectionImpl>::set_refresh_token(std::experimental::string_view _refresh_token)
 {
   refresh_token.assign(_refresh_token.data(), _refresh_token.size());
   return true;
@@ -93,7 +93,7 @@ IdTokenProtectedEndpoint<TLSConnectionImpl>::has_id_token()
 }
 
 template <class TLSConnectionImpl>
-stx::string_view
+std::experimental::string_view
 IdTokenProtectedEndpoint<TLSConnectionImpl>::get_id_token()
 {
   return "";
@@ -101,7 +101,7 @@ IdTokenProtectedEndpoint<TLSConnectionImpl>::get_id_token()
 
 template <class TLSConnectionImpl>
 bool
-IdTokenProtectedEndpoint<TLSConnectionImpl>::set_id_token(stx::string_view id_token)
+IdTokenProtectedEndpoint<TLSConnectionImpl>::set_id_token(std::experimental::string_view id_token)
 {
   std::ostringstream authorization;
   authorization << "Bearer " << id_token;

@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "stx/string_view.hpp"
+#include <experimental/string_view>
 
 // To embed files in the app binary, they are named
 // in the main component.mk COMPONENT_EMBED_TXTFILES variable.
@@ -21,7 +21,7 @@ namespace embedded_files {
     asm("_binary_oidc_fbs_start");
   extern const char oidc_fbs_end[]
     asm("_binary_oidc_fbs_end");
-  const stx::string_view oidc_fbs(
+  const std::experimental::string_view oidc_fbs(
     oidc_fbs_start,
     oidc_fbs_end - oidc_fbs_start
   );
@@ -31,7 +31,7 @@ namespace embedded_files {
     asm("_binary_oidc_bfbs_start");
   extern const char oidc_bfbs_end[]
     asm("_binary_oidc_bfbs_end");
-  const stx::string_view oidc_bfbs(
+  const std::experimental::string_view oidc_bfbs(
     oidc_bfbs_start,
     oidc_bfbs_end - oidc_bfbs_start
   );
