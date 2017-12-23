@@ -11,10 +11,15 @@
 
 #include "base64.h"
 
+#include <sstream>
+
+#include "mbedtls/md.h"
+
 #include "esp_log.h"
 #include "esp_system.h"
 
-#include <sstream>
+#include <stddef.h>
+#include <stdint.h>
 
 constexpr char JWT::TAG[];
 

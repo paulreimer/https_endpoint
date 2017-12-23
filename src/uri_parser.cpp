@@ -9,7 +9,7 @@
  */
 #include "uri_parser.h"
 
-#include <cstdlib>
+#include <string>
 
 // A generic URI is of the form:
 // scheme:[//[user[:password]@]host[:port]][/path][?query][#fragment]

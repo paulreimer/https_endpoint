@@ -10,7 +10,8 @@
 #pragma once
 
 #include "flatbuffers/idl.h"
-#include "flatbuffers/reflection.h"
+#include "flatbuffers/base.h"
+#include "flatbuffers/flatbuffers.h"
 
 #include "flatbuffers_parser.h"
 

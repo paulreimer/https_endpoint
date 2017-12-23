@@ -13,6 +13,8 @@
 
 #include <experimental/string_view>
 
+#include <string>
+
 class JWT
 {
 public:

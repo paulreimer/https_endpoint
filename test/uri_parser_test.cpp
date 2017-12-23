@@ -8,8 +8,13 @@
  * Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
  */
 #include "test_runner.h"
+#include "doctest.h"
 
 #include "../src/uri_parser.h"
+
+#include <experimental/string_view>
+#include <ostream>
+#include <string>
 
 TEST_CASE("Null URI")
 {

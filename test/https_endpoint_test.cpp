@@ -9,6 +9,7 @@
  */
 #include "test_runner.h"
 
+#include "../src/tls_connection.h"
 #include "../src/https_endpoint.h"
 
 // This regex roughly worked to turn C++ class into MAKE_MOCKx() definitions

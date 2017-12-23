@@ -14,7 +14,13 @@
 
 #include <cstring>
 
+#include "mbedtls/debug.h"
+
 #include "esp_log.h"
+#include "mbedtls/error.h"
+
+#include <stdint.h>
+#include <stdio.h>
 
 TLSConnection::TLSConnection(
   std::experimental::string_view _host,

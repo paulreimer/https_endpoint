@@ -9,6 +9,10 @@
  */
 #include "flatbuffers_streaming_json_parser.h"
 
+#include "flatbuffers/reflection_generated.h"
+
+#include <stdint.h>
+
 constexpr char FlatbuffersStreamingJsonParser::TAG[];
 
 FlatbuffersStreamingJsonParser::FlatbuffersStreamingJsonParser(
