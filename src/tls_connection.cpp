@@ -106,12 +106,13 @@ TLSConnection::clear()
 
   if (_initialized)
   {
-    mbedtls_ssl_session_free(&saved_session);
-    mbedtls_ctr_drbg_free(&ctr_drbg);
-    mbedtls_entropy_free(&entropy);
-    mbedtls_ssl_config_free(&conf);
     mbedtls_net_free(&server_fd);
     mbedtls_x509_crt_free(&cacert);
+    mbedtls_ssl_session_free(&saved_session);
+    mbedtls_ssl_free(&ssl);
+    mbedtls_ssl_config_free(&conf);
+    mbedtls_ctr_drbg_free(&ctr_drbg);
+    mbedtls_entropy_free(&entropy);
 
     _initialized = false;
     _connected = false;
